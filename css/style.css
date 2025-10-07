@@ -1,1 +1,78 @@
+:root {
+    --primary-color: #2a2d43;
+    --secondary-color: #4a5079;
+    --accent-color: #7b89c9;
+    --highlight-color: #a6b1e8;
+    --text-color: #e4e8f0;
+    --sidebar-width: 250px;
+    --sidebar-collapsed-width: 70px;
+}
 
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    transition: all 0.3s ease;
+    overflow-x: hidden;
+}
+
+/* Login Styles - Responsive */
+.login-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    padding: 20px;
+}
+
+.login-form {
+    background-color: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-title {
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--primary-color);
+    font-weight: bold;
+    font-size: clamp(1.3rem, 4vw, 1.5rem);
+}
+
+/* ... (semua style CSS dari file sebelumnya) ... */
+
+/* PERBAIKAN: Style untuk Total Overtime di pojok kanan */
+.overtime-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.overtime-filter {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.total-overtime-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ... (lanjutan style) ... */
