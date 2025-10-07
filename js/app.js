@@ -92,7 +92,8 @@ function setupEventListeners() {
     if (passwordInput) {
         passwordInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                document.getElementById('loginBtn').click();
+                const loginBtn = document.getElementById('loginBtn');
+                if (loginBtn) loginBtn.click();
             }
         });
     }
@@ -103,30 +104,26 @@ function setupEventListeners() {
         logoutBtn.addEventListener('click', logout);
     }
     
-    console.log('Event listeners setup completed');
-}
-    
     // Refresh overtime data
-    document.getElementById('refreshOvertimeData').addEventListener('click', async function() {
-        await refreshOvertimeData();
-    });
+    const refreshOvertimeBtn = document.getElementById('refreshOvertimeData');
+    if (refreshOvertimeBtn) {
+        refreshOvertimeBtn.addEventListener('click', async function() {
+            await refreshOvertimeData();
+        });
+    }
     
     // Filter buttons
-    document.getElementById('applyFilterMain').addEventListener('click', applyDateFilterMain);
-    document.getElementById('applyFilterAbsenTabel').addEventListener('click', applyDateFilterAbsenTabel);
+    const applyFilterMain = document.getElementById('applyFilterMain');
+    if (applyFilterMain) {
+        applyFilterMain.addEventListener('click', applyDateFilterMain);
+    }
     
-    // Online/offline events
-    window.addEventListener('online', () => {
-        setOnlineStatus(true);
-        checkConnection();
-        console.log('Connection restored');
-    });
-
-    window.addEventListener('offline', () => {
-        setOnlineStatus(false);
-        checkConnection();
-        console.log('Connection lost');
-    });
+    const applyFilterAbsenTabel = document.getElementById('applyFilterAbsenTabel');
+    if (applyFilterAbsenTabel) {
+        applyFilterAbsenTabel.addEventListener('click', applyDateFilterAbsenTabel);
+    }
+    
+    console.log('Event listeners setup completed');
 }
 
 // Initialize sidebar
@@ -134,12 +131,17 @@ export function initSidebar() {
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
     
-    if (sidebarToggle) {
+    if (sidebarToggle && sidebar) {
         sidebarToggle.addEventListener('click', function() {
             sidebar.classList.toggle('expanded');
-            document.getElementById('mainContent').classList.toggle('expanded');
+            
+            const mainContent = document.getElementById('mainContent');
+            if (mainContent) mainContent.classList.toggle('expanded');
+            
             document.body.classList.toggle('header-expanded');
-            document.getElementById('userPasswordSection').classList.toggle('expanded');
+            
+            const userPasswordSection = document.getElementById('userPasswordSection');
+            if (userPasswordSection) userPasswordSection.classList.toggle('expanded');
         });
     }
     
@@ -183,22 +185,28 @@ export function initSidebar() {
 
 // Update filter visibility based on tab
 function updateFilterVisibility(tabName) {
-    if (tabName === 'entry' || tabName === 'cuti' || tabName === 'summary-overtime') {
-        document.getElementById('filterSectionMain').style.display = 'block';
-        document.getElementById('filterSectionOvertimeOutput').style.display = 'none';
-        document.getElementById('filterSectionAbsenTabel').style.display = 'none';
-    } else if (tabName === 'output' || tabName === 'overtime' || tabName === 'form-rekap-lembur') {
-        document.getElementById('filterSectionMain').style.display = 'none';
-        document.getElementById('filterSectionOvertimeOutput').style.display = 'block';
-        document.getElementById('filterSectionAbsenTabel').style.display = 'none';
-    } else if (tabName === 'absen-tabel' || tabName === 'cuti-detail') {
-        document.getElementById('filterSectionMain').style.display = 'none';
-        document.getElementById('filterSectionOvertimeOutput').style.display = 'none';
-        document.getElementById('filterSectionAbsenTabel').style.display = 'block';
-    } else if (tabName === 'setting') {
-        document.getElementById('filterSectionMain').style.display = 'none';
-        document.getElementById('filterSectionOvertimeOutput').style.display = 'none';
-        document.getElementById('filterSectionAbsenTabel').style.display = 'none';
+    const filterSectionMain = document.getElementById('filterSectionMain');
+    const filterSectionOvertimeOutput = document.getElementById('filterSectionOvertimeOutput');
+    const filterSectionAbsenTabel = document.getElementById('filterSectionAbsenTabel');
+    
+    if (filterSectionMain && filterSectionOvertimeOutput && filterSectionAbsenTabel) {
+        if (tabName === 'entry' || tabName === 'cuti' || tabName === 'summary-overtime') {
+            filterSectionMain.style.display = 'block';
+            filterSectionOvertimeOutput.style.display = 'none';
+            filterSectionAbsenTabel.style.display = 'none';
+        } else if (tabName === 'output' || tabName === 'overtime' || tabName === 'form-rekap-lembur') {
+            filterSectionMain.style.display = 'none';
+            filterSectionOvertimeOutput.style.display = 'block';
+            filterSectionAbsenTabel.style.display = 'none';
+        } else if (tabName === 'absen-tabel' || tabName === 'cuti-detail') {
+            filterSectionMain.style.display = 'none';
+            filterSectionOvertimeOutput.style.display = 'none';
+            filterSectionAbsenTabel.style.display = 'block';
+        } else if (tabName === 'setting') {
+            filterSectionMain.style.display = 'none';
+            filterSectionOvertimeOutput.style.display = 'none';
+            filterSectionAbsenTabel.style.display = 'none';
+        }
     }
 }
 
@@ -219,18 +227,16 @@ function handleTabChange(tabName) {
             }
             break;
         case 'output':
-            if (window.generateOutputAndOvertimeData && !window.outputDataLoaded) {
+            if (window.generateOutputAndOvertimeData) {
                 window.generateOutputAndOvertimeData();
-                window.outputDataLoaded = true;
             }
             if (window.updateOutputTable) {
                 window.updateOutputTable();
             }
             break;
         case 'overtime':
-            if (window.generateOutputAndOvertimeData && !window.overtimeDataLoaded) {
+            if (window.generateOutputAndOvertimeData) {
                 window.generateOutputAndOvertimeData();
-                window.overtimeDataLoaded = true;
             }
             if (window.updateOvertimeTable) {
                 window.updateOvertimeTable();
@@ -265,22 +271,31 @@ export function setupMenuByRole(role) {
     });
     
     // Tampilkan menu General untuk semua role
-    document.getElementById('generalFolder').style.display = 'block';
-    document.querySelectorAll('#generalFolder .sidebar-menu a').forEach(menu => {
-        menu.style.display = 'flex';
-    });
+    const generalFolder = document.getElementById('generalFolder');
+    if (generalFolder) {
+        generalFolder.style.display = 'block';
+        document.querySelectorAll('#generalFolder .sidebar-menu a').forEach(menu => {
+            menu.style.display = 'flex';
+        });
+    }
     
     // Tampilkan menu Main dan Settings untuk admin
     if (role === 'admin') {
-        document.getElementById('mainFolder').style.display = 'block';
-        document.querySelectorAll('#mainFolder .sidebar-menu a').forEach(menu => {
-            menu.style.display = 'flex';
-        });
-        document.querySelector('[data-tab="setting"]').style.display = 'flex';
+        const mainFolder = document.getElementById('mainFolder');
+        if (mainFolder) {
+            mainFolder.style.display = 'block';
+            document.querySelectorAll('#mainFolder .sidebar-menu a').forEach(menu => {
+                menu.style.display = 'flex';
+            });
+        }
+        
+        const settingTab = document.querySelector('[data-tab="setting"]');
+        if (settingTab) settingTab.style.display = 'flex';
     }
     
     // Tampilkan logout untuk semua role
-    document.getElementById('logoutBtn').style.display = 'flex';
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) logoutBtn.style.display = 'flex';
 }
 
 // Setup filter berdasarkan role
@@ -289,9 +304,9 @@ export function setupFilterByRole(role) {
     const employeeFilterContainerOvertimeOutput = document.getElementById('employeeFilterContainerOvertimeOutput');
     const employeeFilterContainerAbsenTabel = document.getElementById('employeeFilterContainerAbsenTabel');
     
-    employeeFilterContainerMain.style.display = 'none';
-    employeeFilterContainerOvertimeOutput.style.display = 'none';
-    employeeFilterContainerAbsenTabel.style.display = 'none';
+    if (employeeFilterContainerMain) employeeFilterContainerMain.style.display = 'none';
+    if (employeeFilterContainerOvertimeOutput) employeeFilterContainerOvertimeOutput.style.display = 'none';
+    if (employeeFilterContainerAbsenTabel) employeeFilterContainerAbsenTabel.style.display = 'none';
 }
 
 // Setup realtime listeners
@@ -302,7 +317,6 @@ export function setupRealtimeListeners() {
     overtimeListener = db.collection('overtime')
         .onSnapshot((snapshot) => {
             console.log('Overtime calculation data updated:', snapshot.size, 'documents');
-            
             // Update data dan tampilan
         }, (error) => {
             console.error('Error in overtime realtime listener:', error);
@@ -321,12 +335,9 @@ export function setupRealtimeListeners() {
                 });
             });
             
-            if (currentTab === "setting") {
-                if (window.updateUserManagementTable) {
-                    window.updateUserManagementTable();
-                }
+            if (currentTab === "setting" && window.updateUserManagementTable) {
+                window.updateUserManagementTable();
             }
-            
         }, (error) => {
             console.error('Error in users realtime listener:', error);
         });
@@ -344,17 +355,12 @@ export function setupRealtimeListeners() {
                 });
             });
             
-            if (currentTab === "cuti") {
-                if (window.updateCutiTable) {
-                    window.updateCutiTable();
-                }
+            if (currentTab === "cuti" && window.updateCutiTable) {
+                window.updateCutiTable();
             }
-            if (currentTab === "cuti-detail") {
-                if (window.generateCutiDetailData) {
-                    window.generateCutiDetailData();
-                }
+            if (currentTab === "cuti-detail" && window.generateCutiDetailData) {
+                window.generateCutiDetailData();
             }
-            
         }, (error) => {
             console.error('Error in cuti realtime listener:', error);
         });
@@ -390,13 +396,17 @@ function initCollapsible() {
         coll[i].addEventListener("click", function() {
             this.classList.toggle("active");
             const content = this.nextElementSibling;
-            content.style.maxHeight = content.style.maxHeight ? null : content.scrollHeight + "px";
+            if (content) {
+                content.style.maxHeight = content.style.maxHeight ? null : content.scrollHeight + "px";
+            }
         });
         
         if (i === 0) {
             coll[i].classList.add("active");
             const content = coll[i].nextElementSibling;
-            content.style.maxHeight = content.scrollHeight + "px";
+            if (content) {
+                content.style.maxHeight = content.scrollHeight + "px";
+            }
         }
     }
 }
@@ -407,7 +417,7 @@ function initMobileMenu() {
     const sidebar = document.getElementById('sidebar');
     const sidebarBackdrop = document.getElementById('sidebarBackdrop');
     
-    if (mobileMenuToggle) {
+    if (mobileMenuToggle && sidebar && sidebarBackdrop) {
         mobileMenuToggle.addEventListener('click', function() {
             sidebar.classList.toggle('mobile-open');
             sidebarBackdrop.classList.toggle('mobile-open');
@@ -422,8 +432,8 @@ function initMobileMenu() {
     document.querySelectorAll('.sidebar-menu a').forEach(item => {
         item.addEventListener('click', function() {
             if (window.innerWidth < 992) {
-                sidebar.classList.remove('mobile-open');
-                sidebarBackdrop.classList.remove('mobile-open');
+                if (sidebar) sidebar.classList.remove('mobile-open');
+                if (sidebarBackdrop) sidebarBackdrop.classList.remove('mobile-open');
             }
         });
     });
@@ -437,8 +447,10 @@ function handleResize() {
         document.body.classList.add('mobile-view');
     } else {
         document.body.classList.remove('mobile-view');
-        document.getElementById('sidebar').classList.remove('mobile-open');
-        document.getElementById('sidebarBackdrop').classList.remove('mobile-open');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+        if (sidebar) sidebar.classList.remove('mobile-open');
+        if (sidebarBackdrop) sidebarBackdrop.classList.remove('mobile-open');
     }
 }
 
@@ -458,16 +470,22 @@ function exposeGlobalFunctions() {
         window.addRow = module.addRow;
         window.applyHeaderSize = module.applyHeaderSize;
         window.saveDataToFirestore = module.saveDataToFirestore;
+    }).catch(error => {
+        console.error('Error importing attendance-entry module:', error);
     });
     
     import('./overtime-calculation.js').then(module => {
         window.editOvertimeCalculationRow = module.editOvertimeCalculationRow;
         window.deleteOvertimeCalculationRow = module.deleteOvertimeCalculationRow;
+    }).catch(error => {
+        console.error('Error importing overtime-calculation module:', error);
     });
     
     import('./overtime-form.js').then(module => {
         window.editOvertimeDetailRecord = module.editOvertimeDetailRecord;
         window.deleteOvertimeDetailRecord = module.deleteOvertimeDetailRecord;
+    }).catch(error => {
+        console.error('Error importing overtime-form module:', error);
     });
     
     import('./leave-management.js').then(module => {
@@ -475,6 +493,8 @@ function exposeGlobalFunctions() {
         window.deleteCutiRow = module.deleteCutiRow;
         window.viewLeaveDetails = module.viewLeaveDetails;
         window.saveCutiDataToFirestore = module.saveCutiDataToFirestore;
+    }).catch(error => {
+        console.error('Error importing leave-management module:', error);
     });
     
     import('./user-management.js').then(module => {
@@ -482,9 +502,13 @@ function exposeGlobalFunctions() {
         window.deleteUser = module.deleteUser;
         window.updateUser = module.updateUser;
         window.addNewUser = module.addNewUser;
+    }).catch(error => {
+        console.error('Error importing user-management module:', error);
     });
     
     import('./auth.js').then(module => {
         window.changeUserPassword = module.changeUserPassword;
+    }).catch(error => {
+        console.error('Error importing auth module:', error);
     });
 }
