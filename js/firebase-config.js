@@ -1,4 +1,4 @@
-// Firebase Configuration
+// Firebase Configuration - FIXED VERSION
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js';
 import { getAuth } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js';
 import { getFirestore } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js';
