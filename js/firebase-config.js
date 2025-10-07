@@ -1,7 +1,7 @@
-// Firebase Configuration - FIXED VERSION
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js';
-import { getAuth } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js';
-import { getFirestore } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js';
+// Firebase Configuration - COMPATIBLE VERSION
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
+import { getAuth } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js';
+import { getFirestore, enableIndexedDbPersistence, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
 
 const firebaseConfig = {
     apiKey: "AIzaSyCs_65P_SLx529UwLcQO8cF69yD1yLOgKY",
@@ -18,9 +18,9 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // Enable offline persistence
-db.enablePersistence()
+enableIndexedDbPersistence(db)
   .catch((err) => {
-      console.log('Persistence failed: ', err);
+      console.log('Firebase persistence failed: ', err);
   });
 
-export { auth, db };
+export { auth, db, serverTimestamp };
