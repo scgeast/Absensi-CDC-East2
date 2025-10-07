@@ -12,9 +12,6 @@
     
     <!-- JavaScript Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <!-- Mobile Menu Toggle -->
@@ -37,7 +34,7 @@
     <div class="login-container" id="loginContainer">
         <div class="login-form">
             <h2 class="login-title">ATTENDANCE CREW CDC EAST</h2>
-            <div class="offline-message" id="loginOfflineMessage">
+            <div class="offline-message" id="loginOfflineMessage" style="display: none;">
                 <i class="fas fa-wifi"></i> You are currently offline. Some features may be limited.
             </div>
             <div class="mb-3">
@@ -48,14 +45,14 @@
                 <label for="password" class="form-label">Password</label>
                 <input type="password" class="form-control" id="password" placeholder="Enter password">
             </div>
-            <div class="login-error" id="loginError">Email or password is incorrect!</div>
+            <div class="login-error" id="loginError" style="display: none;">Email or password is incorrect!</div>
             <button class="btn btn-futuristic w-100" id="loginBtn">Login</button>
             <div class="provider-text">Provide by L23-51Xe</div>
         </div>
     </div>
 
     <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
+    <div class="sidebar" id="sidebar" style="display: none;">
         <div class="sidebar-header">
             <h3>Attendance Menu</h3>
             <button class="sidebar-toggle" id="sidebarToggle">
@@ -94,7 +91,7 @@
         </div>
         
         <!-- Main Folder (Admin Only) -->
-        <div class="sidebar-folder" id="mainFolder">
+        <div class="sidebar-folder" id="mainFolder" style="display: none;">
             <div class="sidebar-folder-header">
                 <i class="fas fa-folder"></i>
                 <span>Main</span>
@@ -138,13 +135,13 @@
         <!-- Settings Menu (Admin Only) -->
         <ul class="sidebar-menu">
             <li>
-                <a href="#" data-tab="setting">
+                <a href="#" data-tab="setting" style="display: none;">
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
                 </a>
             </li>
             <li>
-                <a href="#" id="logoutBtn">
+                <a href="#" id="logoutBtn" style="display: none;">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Logout</span>
                 </a>
@@ -153,7 +150,7 @@
     </div>
 
     <!-- User Password Section -->
-    <div class="user-password-section" id="userPasswordSection">
+    <div class="user-password-section" id="userPasswordSection" style="display: none;">
         <button class="user-password-btn" id="changePasswordSidebarBtn">
             <i class="fas fa-key"></i>
             <span>Change Password</span>
@@ -161,7 +158,7 @@
     </div>
 
     <!-- Header -->
-    <header class="futuristic-header">
+    <header class="futuristic-header" style="display: none;">
         <div class="container">
             <h1 class="header-title text-center">ATTENDANCE CREW CDC EAST</h1>
             <p class="header-subtitle text-center">Modern and Efficient Attendance Management</p>
@@ -169,19 +166,237 @@
     </header>
 
     <!-- Main Content -->
-    <div class="main-content" id="mainContent">
-        <div class="offline-message" id="appOfflineMessage">
+    <div class="main-content" id="mainContent" style="display: none;">
+        <div class="offline-message" id="appOfflineMessage" style="display: none;">
             <i class="fas fa-wifi"></i> You are currently offline. Data will be synced when connection is restored.
         </div>
         
         <div class="container mt-4">
-            <!-- Filter Sections and Tab Content remain the same as original -->
-            <!-- ... (content sama seperti sebelumnya) ... -->
+            <!-- Filter Sections -->
+            <div class="filter-section" id="filterSectionMain" style="display: none;">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="dateFilterMain" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="dateFilterMain">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="employeeFilterMain" class="form-label">Employee</label>
+                        <select class="form-control" id="employeeFilterMain">
+                            <option value="">All Employees</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">&nbsp;</label>
+                        <button class="btn btn-futuristic w-100" id="applyFilterMain">Apply Filter</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-section" id="filterSectionOvertimeOutput" style="display: none;">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="dateFilterOvertimeOutput" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="dateFilterOvertimeOutput">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="employeeFilterOvertimeOutput" class="form-label">Employee</label>
+                        <select class="form-control" id="employeeFilterOvertimeOutput">
+                            <option value="">All Employees</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">&nbsp;</label>
+                        <button class="btn btn-futuristic w-100" id="applyFilterOvertimeOutput">Apply Filter</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-section" id="filterSectionAbsenTabel" style="display: none;">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="dateFilterAbsenTabel" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="dateFilterAbsenTabel">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="employeeFilterAbsenTabel" class="form-label">Employee</label>
+                        <select class="form-control" id="employeeFilterAbsenTabel">
+                            <option value="">All Employees</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">&nbsp;</label>
+                        <button class="btn btn-futuristic w-100" id="applyFilterAbsenTabel">Apply Filter</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Attendance Entry Tab -->
+                <div class="tab-pane fade" id="entry">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">Attendance Entry</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="attendanceTable">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Name</th>
+                                            <th>Date</th>
+                                            <th>Shift</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="attendanceTableBody">
+                                        <!-- Data will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button class="btn btn-futuristic mt-3" onclick="addRow()">
+                                <i class="fas fa-plus"></i> Add Row
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add other tab content here (output, overtime, cuti, etc.) -->
+                <div class="tab-pane fade" id="output">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">Attendance Output</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="outputTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Employee</th>
+                                            <th>Date</th>
+                                            <th>Attendance Data</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Data will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add remaining tabs with basic structure -->
+                <div class="tab-pane fade" id="overtime">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">Overtime Calculation</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Overtime content -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="cuti">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">Leave Management</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Leave management content -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="summary-overtime">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">Summary Overtime</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Summary overtime content -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="absen-tabel">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">Attendance Table</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Attendance table content -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="form-rekap-lembur">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">Overtime Form</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Overtime form content -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="cuti-detail">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">Summarize Leave</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Summarize leave content -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="setting">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Settings content -->
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Modals remain the same as original -->
-    <!-- ... (modals sama seperti sebelumnya) ... -->
+    <!-- Change Password Modal -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Change Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label">Current Password</label>
+                        <input type="password" class="form-control" id="currentPassword">
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="newPassword">
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirmPassword">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-futuristic" onclick="changeUserPassword()">Change Password</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
