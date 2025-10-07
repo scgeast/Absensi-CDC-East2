@@ -1,7 +1,7 @@
-// Authentication Functions - FIXED VERSION
-import { auth, db } from './firebase-config.js';
+// Authentication Functions - COMPATIBLE VERSION
+import { auth, db, serverTimestamp } from './firebase-config.js';
 import { setCurrentUser, showLoading, showNotification, checkConnection } from './utils.js';
-import { setupRealtimeListeners, cleanupRealtimeListeners, setupMenuByRole, setupFilterByRole } from './app.js';
+import { setupRealtimeListeners, cleanupRealtimeListeners, setupMenuByRole, setupFilterByRole } from './main.js';
 
 export async function login(email, password) {
     showLoading(true);
@@ -43,7 +43,7 @@ export async function login(email, password) {
                     role: user.role,
                     name: user.name,
                     position: user.position,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    createdAt: serverTimestamp()
                 });
                 console.log('Default user data created');
             }
@@ -57,11 +57,17 @@ export async function login(email, password) {
         setCurrentUser(user);
         
         // Update UI
-        document.getElementById('loginContainer').style.display = 'none';
-        document.getElementById('sidebar').style.display = 'block';
-        document.getElementById('userPasswordSection').style.display = 'block';
-        document.getElementById('mainContent').style.display = 'block';
-        document.querySelector('.futuristic-header').style.display = 'block';
+        const loginContainer = document.getElementById('loginContainer');
+        const sidebar = document.getElementById('sidebar');
+        const userPasswordSection = document.getElementById('userPasswordSection');
+        const mainContent = document.getElementById('mainContent');
+        const header = document.querySelector('.futuristic-header');
+        
+        if (loginContainer) loginContainer.style.display = 'none';
+        if (sidebar) sidebar.style.display = 'block';
+        if (userPasswordSection) userPasswordSection.style.display = 'block';
+        if (mainContent) mainContent.style.display = 'block';
+        if (header) header.style.display = 'block';
         
         // Update header subtitle
         const headerSubtitle = document.querySelector('.header-subtitle');
@@ -69,11 +75,11 @@ export async function login(email, password) {
             headerSubtitle.innerHTML = `Modern and Efficient Attendance Management | Logged in as: ${user.name || user.email} (${user.role})`;
         }
         
-        setupMenuByRole(user.role);
-        setupFilterByRole(user.role);
+        if (setupMenuByRole) setupMenuByRole(user.role);
+        if (setupFilterByRole) setupFilterByRole(user.role);
         
         // Setup realtime listeners
-        setupRealtimeListeners();
+        if (setupRealtimeListeners) setupRealtimeListeners();
         
         showLoading(false);
         checkConnection();
@@ -92,24 +98,29 @@ export async function login(email, password) {
 }
 
 export function logout() {
-    cleanupRealtimeListeners();
+    if (cleanupRealtimeListeners) cleanupRealtimeListeners();
     
     auth.signOut().then(() => {
         setCurrentUser(null);
-        // Reset UI ke state login
-        document.getElementById('loginContainer').style.display = 'flex';
-        document.getElementById('sidebar').style.display = 'none';
-        document.getElementById('userPasswordSection').style.display = 'none';
-        document.getElementById('mainContent').style.display = 'none';
         
+        // Reset UI ke state login
+        const loginContainer = document.getElementById('loginContainer');
+        const sidebar = document.getElementById('sidebar');
+        const userPasswordSection = document.getElementById('userPasswordSection');
+        const mainContent = document.getElementById('mainContent');
         const header = document.querySelector('.futuristic-header');
-        if (header) {
-            header.style.display = 'none';
-        }
+        
+        if (loginContainer) loginContainer.style.display = 'flex';
+        if (sidebar) sidebar.style.display = 'none';
+        if (userPasswordSection) userPasswordSection.style.display = 'none';
+        if (mainContent) mainContent.style.display = 'none';
+        if (header) header.style.display = 'none';
         
         // Clear form fields
-        document.getElementById('email').value = '';
-        document.getElementById('password').value = '';
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        if (emailInput) emailInput.value = '';
+        if (passwordInput) passwordInput.value = '';
         
         const loginError = document.getElementById('loginError');
         if (loginError) {
@@ -121,3 +132,7 @@ export function logout() {
         console.error('Logout error:', error);
     });
 }
+
+// Export untuk global access
+window.login = login;
+window.logout = logout;
