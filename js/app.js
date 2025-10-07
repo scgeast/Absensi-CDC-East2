@@ -24,16 +24,32 @@ let cutiListener = null;
 
 // Initialize application
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing application...');
     initializeApp();
 });
 
 function initializeApp() {
+    console.log('Initializing application...');
+    
     // Check connection status awal
     checkConnection();
     
     // Setup event listeners untuk resize
     window.addEventListener('resize', handleResize);
     window.addEventListener('orientationchange', handleResize);
+    
+    // Setup event listeners untuk online/offline
+    window.addEventListener('online', () => {
+        console.log('Browser is online');
+        setOnlineStatus(true);
+        checkConnection();
+    });
+
+    window.addEventListener('offline', () => {
+        console.log('Browser is offline');
+        setOnlineStatus(false);
+        checkConnection();
+    });
     
     // Setup event listeners
     setupEventListeners();
@@ -50,28 +66,45 @@ function initializeApp() {
 }
 
 function setupEventListeners() {
-    // Login
-    document.getElementById('loginBtn').addEventListener('click', function() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        
-        if (!email || !password) {
-            alert('Email and password must be filled!');
-            return;
-        }
-        
-        login(email, password);
-    });
+    console.log('Setting up event listeners...');
+    
+    // Login button
+    const loginBtn = document.getElementById('loginBtn');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', function() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                alert('Email and password must be filled!');
+                return;
+            }
+            
+            console.log('Attempting login for:', email);
+            login(email, password);
+        });
+    } else {
+        console.error('Login button not found');
+    }
     
     // Enter key untuk login
-    document.getElementById('password').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            document.getElementById('loginBtn').click();
-        }
-    });
+    const passwordInput = document.getElementById('password');
+    if (passwordInput) {
+        passwordInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('loginBtn').click();
+            }
+        });
+    }
     
-    // Logout
-    document.getElementById('logoutBtn').addEventListener('click', logout);
+    // Logout button
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', logout);
+    }
+    
+    console.log('Event listeners setup completed');
+}
     
     // Refresh overtime data
     document.getElementById('refreshOvertimeData').addEventListener('click', async function() {
