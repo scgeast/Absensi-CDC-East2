@@ -1,18 +1,20 @@
-// Main Application File
+// Main Application File - Complete Version
 import { auth, db } from './firebase-config.js';
 import { 
     currentUser, isOnline, setCurrentUser, setOnlineStatus, 
-    showLoading, showNotification, checkConnection 
+    showLoading, showNotification, checkConnection, initialEmployees
 } from './utils.js';
 import { login, logout } from './auth.js';
 import { refreshOvertimeData, loadOvertimeCalculationData } from './overtime-calculation.js';
 import { initOvertimeForm } from './overtime-form.js';
+import { loadCutiData, generateCutiDetailData } from './leave-management.js';
+import { loadUsers } from './user-management.js';
+import { applyDateFilterMain, applyDateFilterAbsenTabel, absensiData } from './attendance-entry.js';
 
 // Global variables
-let absensiData = [];
-let absenTabelData = [];
-let users = [];
-let cutiData = [];
+export let currentTab = "entry";
+export let users = [];
+export let cutiData = [];
 
 // Realtime listeners
 let overtimeListener = null;
@@ -37,8 +39,12 @@ function initializeApp() {
     setupEventListeners();
     
     // Initialize UI components
+    initSidebar();
     initCollapsible();
     initMobileMenu();
+    
+    // Expose global functions for HTML onclick
+    exposeGlobalFunctions();
     
     console.log('Application initialized successfully');
 }
@@ -72,6 +78,10 @@ function setupEventListeners() {
         await refreshOvertimeData();
     });
     
+    // Filter buttons
+    document.getElementById('applyFilterMain').addEventListener('click', applyDateFilterMain);
+    document.getElementById('applyFilterAbsenTabel').addEventListener('click', applyDateFilterAbsenTabel);
+    
     // Online/offline events
     window.addEventListener('online', () => {
         setOnlineStatus(true);
@@ -84,6 +94,131 @@ function setupEventListeners() {
         checkConnection();
         console.log('Connection lost');
     });
+}
+
+// Initialize sidebar
+export function initSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('expanded');
+            document.getElementById('mainContent').classList.toggle('expanded');
+            document.body.classList.toggle('header-expanded');
+            document.getElementById('userPasswordSection').classList.toggle('expanded');
+        });
+    }
+    
+    // Folder toggle
+    document.querySelectorAll('.sidebar-folder-header').forEach(header => {
+        header.addEventListener('click', function() {
+            this.parentElement.classList.toggle('expanded');
+        });
+    });
+    
+    // Menu item clicks
+    document.querySelectorAll('.sidebar-menu a[data-tab]').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Update active menu
+            document.querySelectorAll('.sidebar-menu a').forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show corresponding tab
+            const tabName = this.getAttribute('data-tab');
+            currentTab = tabName;
+            
+            document.querySelectorAll('.tab-pane').forEach(tab => {
+                tab.classList.remove('show', 'active');
+            });
+            
+            const targetTab = document.getElementById(tabName);
+            if (targetTab) {
+                targetTab.classList.add('show', 'active');
+            }
+            
+            // Tampilkan/sembunyikan filter yang sesuai
+            updateFilterVisibility(tabName);
+            
+            // Load data berdasarkan tab
+            handleTabChange(tabName);
+        });
+    });
+}
+
+// Update filter visibility based on tab
+function updateFilterVisibility(tabName) {
+    if (tabName === 'entry' || tabName === 'cuti' || tabName === 'summary-overtime') {
+        document.getElementById('filterSectionMain').style.display = 'block';
+        document.getElementById('filterSectionOvertimeOutput').style.display = 'none';
+        document.getElementById('filterSectionAbsenTabel').style.display = 'none';
+    } else if (tabName === 'output' || tabName === 'overtime' || tabName === 'form-rekap-lembur') {
+        document.getElementById('filterSectionMain').style.display = 'none';
+        document.getElementById('filterSectionOvertimeOutput').style.display = 'block';
+        document.getElementById('filterSectionAbsenTabel').style.display = 'none';
+    } else if (tabName === 'absen-tabel' || tabName === 'cuti-detail') {
+        document.getElementById('filterSectionMain').style.display = 'none';
+        document.getElementById('filterSectionOvertimeOutput').style.display = 'none';
+        document.getElementById('filterSectionAbsenTabel').style.display = 'block';
+    } else if (tabName === 'setting') {
+        document.getElementById('filterSectionMain').style.display = 'none';
+        document.getElementById('filterSectionOvertimeOutput').style.display = 'none';
+        document.getElementById('filterSectionAbsenTabel').style.display = 'none';
+    }
+}
+
+// Handle tab change
+function handleTabChange(tabName) {
+    switch(tabName) {
+        case 'absen-tabel':
+            if (window.loadAbsenTabelData) {
+                window.loadAbsenTabelData();
+            }
+            if (window.updateAttendanceSummaryTable) {
+                window.updateAttendanceSummaryTable();
+            }
+            break;
+        case 'summary-overtime':
+            if (window.updateOvertimeSummaryTable) {
+                window.updateOvertimeSummaryTable();
+            }
+            break;
+        case 'output':
+            if (window.generateOutputAndOvertimeData && !window.outputDataLoaded) {
+                window.generateOutputAndOvertimeData();
+                window.outputDataLoaded = true;
+            }
+            if (window.updateOutputTable) {
+                window.updateOutputTable();
+            }
+            break;
+        case 'overtime':
+            if (window.generateOutputAndOvertimeData && !window.overtimeDataLoaded) {
+                window.generateOutputAndOvertimeData();
+                window.overtimeDataLoaded = true;
+            }
+            if (window.updateOvertimeTable) {
+                window.updateOvertimeTable();
+            }
+            break;
+        case 'cuti-detail':
+            if (window.generateCutiDetailData) {
+                window.generateCutiDetailData();
+            }
+            break;
+        case 'cuti':
+            if (window.updateCutiTable) {
+                window.updateCutiTable();
+            }
+            break;
+        case 'form-rekap-lembur':
+            if (window.initOvertimeForm) {
+                window.initOvertimeForm();
+            }
+            break;
+    }
 }
 
 // Setup menu berdasarkan role
@@ -140,7 +275,58 @@ export function setupRealtimeListeners() {
             console.error('Error in overtime realtime listener:', error);
         });
 
-    // ... (setup listeners lainnya) ...
+    // Users listener
+    usersListener = db.collection('users')
+        .onSnapshot((snapshot) => {
+            console.log('Users data updated:', snapshot.size, 'documents');
+            
+            users = [];
+            snapshot.forEach(doc => {
+                users.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
+            });
+            
+            if (currentTab === "setting") {
+                if (window.updateUserManagementTable) {
+                    window.updateUserManagementTable();
+                }
+            }
+            
+        }, (error) => {
+            console.error('Error in users realtime listener:', error);
+        });
+
+    // Cuti listener
+    cutiListener = db.collection('cuti')
+        .onSnapshot((snapshot) => {
+            console.log('Cuti data updated:', snapshot.size, 'documents');
+            
+            cutiData = [];
+            snapshot.forEach(doc => {
+                cutiData.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
+            });
+            
+            if (currentTab === "cuti") {
+                if (window.updateCutiTable) {
+                    window.updateCutiTable();
+                }
+            }
+            if (currentTab === "cuti-detail") {
+                if (window.generateCutiDetailData) {
+                    window.generateCutiDetailData();
+                }
+            }
+            
+        }, (error) => {
+            console.error('Error in cuti realtime listener:', error);
+        });
+
+    console.log('All realtime listeners setup completed');
 }
 
 // Cleanup realtime listeners
@@ -221,4 +407,51 @@ function handleResize() {
         document.getElementById('sidebar').classList.remove('mobile-open');
         document.getElementById('sidebarBackdrop').classList.remove('mobile-open');
     }
+}
+
+// Expose global functions for HTML onclick
+function exposeGlobalFunctions() {
+    // Make functions available globally for HTML onclick attributes
+    window.currentTab = currentTab;
+    window.absensiData = absensiData;
+    window.initialEmployees = initialEmployees;
+    window.isOnline = isOnline;
+    
+    // Import and expose functions from other modules
+    import('./attendance-entry.js').then(module => {
+        window.makeEditable = module.makeEditable;
+        window.deleteRow = module.deleteRow;
+        window.updateShiftColor = module.updateShiftColor;
+        window.addRow = module.addRow;
+        window.applyHeaderSize = module.applyHeaderSize;
+        window.saveDataToFirestore = module.saveDataToFirestore;
+    });
+    
+    import('./overtime-calculation.js').then(module => {
+        window.editOvertimeCalculationRow = module.editOvertimeCalculationRow;
+        window.deleteOvertimeCalculationRow = module.deleteOvertimeCalculationRow;
+    });
+    
+    import('./overtime-form.js').then(module => {
+        window.editOvertimeDetailRecord = module.editOvertimeDetailRecord;
+        window.deleteOvertimeDetailRecord = module.deleteOvertimeDetailRecord;
+    });
+    
+    import('./leave-management.js').then(module => {
+        window.addCuti = module.addCuti;
+        window.deleteCutiRow = module.deleteCutiRow;
+        window.viewLeaveDetails = module.viewLeaveDetails;
+        window.saveCutiDataToFirestore = module.saveCutiDataToFirestore;
+    });
+    
+    import('./user-management.js').then(module => {
+        window.editUser = module.editUser;
+        window.deleteUser = module.deleteUser;
+        window.updateUser = module.updateUser;
+        window.addNewUser = module.addNewUser;
+    });
+    
+    import('./auth.js').then(module => {
+        window.changeUserPassword = module.changeUserPassword;
+    });
 }
