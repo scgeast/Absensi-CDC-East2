@@ -1,20 +1,36 @@
-// Attendance Entry Functions
-import { db } from './firebase-config.js';
-import { 
-    showLoading, showNotification, formatDateForShift, 
-    formatDateForHeader, parseDateFromString, shiftMatrix 
-} from './utils.js';
+// Attendance entry logic
 
-export let absensiData = [];
-export let absenTabelData = [];
-export let outputData = [];
-export let dateRangeMain = [];
-export let dateRangeAbsenTabel = [];
-export let currentFocusedCell = null;
-export let isSaving = false;
+// Global variables
+let absensiData = [];
+let dateRangeMain = [];
+let isSaving = false;
 
-// PERBAIKAN: Fungsi untuk apply filter tanggal Main folder
-export function applyDateFilterMain() {
+// Load initial data for attendance entry
+async function loadAttendanceEntryData() {
+    try {
+        const absensiSnapshot = await db.collection('absensi').limit(50).get();
+        
+        absensiData = [];
+        absensiSnapshot.forEach(doc => {
+            absensiData.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        // Apply date filter
+        applyDateFilterMain();
+        
+    } catch (error) {
+        console.error('Error loading attendance entry data:', error);
+        // Use initial employees if Firestore is unavailable
+        absensiData = [...CONSTANTS.INITIAL_EMPLOYEES];
+        applyDateFilterMain();
+    }
+}
+
+// Apply date filter for Main folder
+function applyDateFilterMain() {
     const startDate = document.getElementById('startDateMain').valueAsDate;
     const endDate = document.getElementById('endDateMain').valueAsDate;
     
@@ -28,55 +44,20 @@ export function applyDateFilterMain() {
         currentDate.setDate(currentDate.getDate() + 1);
     }
     
-    // Batasi maksimal 31 hari untuk performa
-    if (dateRangeMain.length > 31) {
-        alert('Date range limited to 31 days for better performance');
-        dateRangeMain = dateRangeMain.slice(0, 31);
+    // Limit to 31 days for performance
+    if (dateRangeMain.length > CONSTANTS.DEFAULT_DATE_RANGE) {
+        alert(`Date range limited to ${CONSTANTS.DEFAULT_DATE_RANGE} days for better performance`);
+        dateRangeMain = dateRangeMain.slice(0, CONSTANTS.DEFAULT_DATE_RANGE);
         document.getElementById('endDateMain').valueAsDate = dateRangeMain[dateRangeMain.length - 1];
     }
     
     updateEntryTable();
 }
 
-// PERBAIKAN: Fungsi untuk apply filter tanggal Attendance Table
-export function applyDateFilterAbsenTabel() {
-    const startDate = document.getElementById('startDateAbsenTabel').valueAsDate;
-    const endDate = document.getElementById('endDateAbsenTabel').valueAsDate;
-    
-    if (!startDate || !endDate) return;
-    
-    dateRangeAbsenTabel = [];
-    let currentDate = new Date(startDate);
-    
-    while (currentDate <= endDate) {
-        dateRangeAbsenTabel.push(new Date(currentDate));
-        currentDate.setDate(currentDate.getDate() + 1);
-    }
-    
-    // Batasi maksimal 31 hari untuk performa
-    if (dateRangeAbsenTabel.length > 31) {
-        alert('Date range limited to 31 days for better performance');
-        dateRangeAbsenTabel = dateRangeAbsenTabel.slice(0, 31);
-        document.getElementById('endDateAbsenTabel').valueAsDate = dateRangeAbsenTabel[dateRangeAbsenTabel.length - 1];
-    }
-    
-    // Update tables yang menggunakan filter Absen Tabel
-    if (window.currentTab === "absen-tabel") {
-        updateAbsenTabelTable();
-    }
-    if (window.currentTab === "cuti-detail") {
-        if (window.generateCutiDetailData) {
-            window.generateCutiDetailData();
-        }
-    }
-}
-
 // Update entry table
-export function updateEntryTable() {
+function updateEntryTable() {
     const thead = document.querySelector('#entryTable thead tr');
     const tbody = document.querySelector('#entryTable tbody');
-    
-    if (!thead || !tbody) return;
     
     // Update header
     let headerHTML = '<th>Work Area</th><th>Employee Name</th><th>Job Position</th>';
@@ -90,18 +71,16 @@ export function updateEntryTable() {
     updateEntryTableBody();
     initializeShiftColors();
     
-    // Terapkan pengaturan header yang tersimpan
+    // Apply saved header settings
     loadHeaderSettings();
     
-    // PERBAIKAN: Setup navigasi keyboard
+    // Setup keyboard navigation
     setupKeyboardNavigation();
 }
 
-export function updateEntryTableBody() {
+function updateEntryTableBody() {
     const tbody = document.querySelector('#entryTable tbody');
-    if (!tbody) return;
-    
-    const employeesToShow = absensiData.length > 0 ? absensiData : window.initialEmployees;
+    const employeesToShow = absensiData.length > 0 ? absensiData : CONSTANTS.INITIAL_EMPLOYEES;
     
     // Sort employees by default order
     const sortedEmployees = sortEmployeesByDefaultOrder(employeesToShow);
@@ -128,11 +107,14 @@ export function updateEntryTableBody() {
     tbody.innerHTML = tbodyHTML;
 }
 
-// PERBAIKAN: Setup navigasi keyboard
-export function setupKeyboardNavigation() {
+// Setup keyboard navigation
+function setupKeyboardNavigation() {
     const table = document.querySelector('#entryTable');
     if (!table) return;
     
+    let currentFocusedCell = null;
+    
+    // Add event listener for keyboard navigation
     table.addEventListener('keydown', function(e) {
         if (!currentFocusedCell) return;
         
@@ -177,6 +159,7 @@ export function setupKeyboardNavigation() {
                 }
                 break;
             case 'Tab':
+                // Allow default tab behavior
                 break;
         }
         
@@ -187,12 +170,14 @@ export function setupKeyboardNavigation() {
         }
     });
     
+    // Set focus on cell click
     table.addEventListener('click', function(e) {
         if (e.target.classList.contains('editable-cell')) {
             currentFocusedCell = e.target;
         }
     });
     
+    // Set focus on cell focus
     table.addEventListener('focusin', function(e) {
         if (e.target.classList.contains('editable-cell')) {
             currentFocusedCell = e.target;
@@ -200,26 +185,22 @@ export function setupKeyboardNavigation() {
     });
 }
 
-// Fungsi untuk membuat input editable
-export function makeEditable(input) {
+// Make input editable
+function makeEditable(input) {
     input.readOnly = false;
     input.focus();
     input.select();
     
     input.addEventListener('blur', function() {
         this.readOnly = true;
-        if (window.updateEmployeeDropdown) {
-            window.updateEmployeeDropdown();
-        }
-        if (window.updateCutiEmployeeDropdown) {
-            window.updateCutiEmployeeDropdown();
-        }
+        updateEmployeeDropdown();
+        updateCutiEmployeeDropdown();
     }, { once: true });
 }
 
-// Fungsi untuk delete row
-export function deleteRow(button) {
-    if (window.currentTab === "absen-tabel") return;
+// Delete row
+function deleteRow(button) {
+    if (currentTab === "absen-tabel") return;
     
     const row = button.closest('tr');
     const name = row.querySelector('.name-input').value;
@@ -228,36 +209,12 @@ export function deleteRow(button) {
     absensiData = absensiData.filter(emp => !(emp.name === name && emp.position === position));
     row.remove();
     
-    if (window.updateEmployeeDropdown) {
-        window.updateEmployeeDropdown();
-    }
-    if (window.updateCutiEmployeeDropdown) {
-        window.updateCutiEmployeeDropdown();
-    }
+    updateEmployeeDropdown();
+    updateCutiEmployeeDropdown();
 }
 
-// Fungsi untuk mengurutkan karyawan sesuai urutan default
-export function sortEmployeesByDefaultOrder(employees) {
-    const nameOrder = ["Fahmi Ardiansah", "Agung Setyawan", "Drajat Triono", "Wiyanto", "Nur Fauziah"];
-    const sorted = [...employees];
-    sorted.sort((a, b) => {
-        const orderA = nameOrder.indexOf(a.name);
-        const orderB = nameOrder.indexOf(b.name);
-        return (orderA === -1 ? 999 : orderA) - (orderB === -1 ? 999 : orderB);
-    });
-    return sorted;
-}
-
-// Initialize shift colors
-export function initializeShiftColors() {
-    const shiftInputs = document.querySelectorAll('.shift-input');
-    shiftInputs.forEach(input => {
-        updateShiftColor(input);
-    });
-}
-
-// Fungsi untuk mengupdate warna sel
-export function updateShiftColor(input) {
+// Update shift color
+function updateShiftColor(input) {
     const value = input.value.toUpperCase();
     const td = input.parentElement;
 
@@ -274,8 +231,16 @@ export function updateShiftColor(input) {
     else if (value === "O") td.classList.add("shift-O");
 }
 
-// Fungsi untuk memuat pengaturan header yang tersimpan
-export function loadHeaderSettings() {
+// Initialize shift colors
+function initializeShiftColors() {
+    const shiftInputs = document.querySelectorAll('.shift-input');
+    shiftInputs.forEach(input => {
+        updateShiftColor(input);
+    });
+}
+
+// Load header settings
+function loadHeaderSettings() {
     const savedWidth = localStorage.getItem('headerWidth');
     const savedHeight = localStorage.getItem('headerHeight');
     
@@ -287,7 +252,7 @@ export function loadHeaderSettings() {
         document.getElementById('headerHeight').value = savedHeight;
     }
     
-    // Terapkan pengaturan jika ada
+    // Apply settings if available
     if (savedWidth || savedHeight) {
         const headers = document.querySelectorAll('#entryTable th');
         const cells = document.querySelectorAll('#entryTable td');
@@ -304,13 +269,14 @@ export function loadHeaderSettings() {
     }
 }
 
-// PERBAIKAN: Fungsi untuk menyimpan data dengan offline support
-export async function saveDataToFirestore() {
-    if (isSaving) return;
+// Save data to Firestore
+async function saveDataToFirestore() {
+    if (isSaving) return; // Prevent multiple saves
     isSaving = true;
     
-    if (!window.isOnline) {
+    if (!isOnline) {
         console.log('Offline - data will be saved when connection is restored');
+        // Save to localStorage as backup
         localStorage.setItem('absensiDataBackup', JSON.stringify(absensiData));
         isSaving = false;
         return;
@@ -332,7 +298,7 @@ export async function saveDataToFirestore() {
             const name = nameInput.value;
             const position = positionInput.value;
             
-            if (!name) return;
+            if (!name) return; // Skip empty rows
             
             const shifts = {};
             const shiftInputs = row.querySelectorAll('.shift-input');
@@ -375,19 +341,18 @@ export async function saveDataToFirestore() {
         console.log('Data saved successfully');
         
         // Generate output and overtime calculation data
-        if (window.generateOutputAndOvertimeData) {
-            window.generateOutputAndOvertimeData();
-        }
+        generateOutputAndOvertimeData();
         
         showNotification('Data saved successfully!', 'success');
         
-        // Hapus backup setelah berhasil sync
+        // Remove backup after successful sync
         localStorage.removeItem('absensiDataBackup');
         
     } catch (error) {
         console.error('Error saving data:', error);
         showNotification('Error saving data: ' + error.message, 'error');
         if (error.code !== 'failed-precondition') {
+            // Save to localStorage as backup
             localStorage.setItem('absensiDataBackup', JSON.stringify(absensiData));
         }
     } finally {
@@ -395,51 +360,132 @@ export async function saveDataToFirestore() {
     }
 }
 
-// Add row function
-export function addRow() {
-    const tbody = document.querySelector('#entryTable tbody');
-    if (!tbody) return;
+// Save data to absen tabel (read-only)
+async function saveDataToAbsenTabel() {
+    if (!isOnline) {
+        console.log('Offline - data will be saved when connection is restored');
+        return;
+    }
     
-    const newRow = document.createElement('tr');
-    
-    let rowHTML = `
-        <td><input type="text" class="area-input read-only-input" readonly ondblclick="makeEditable(this)"></td>
-        <td><input type="text" class="name-input read-only-input" readonly ondblclick="makeEditable(this)"></td>
-        <td><input type="text" class="position-input read-only-input" readonly ondblclick="makeEditable(this)"></td>
-    `;
-    
-    dateRangeMain.forEach(() => {
-        rowHTML += '<td><input type="text" class="shift-input editable-cell" onchange="updateShiftColor(this)"></td>';
-    });
-    
-    rowHTML += '<td><button class="btn-delete" onclick="deleteRow(this)"><i class="fas fa-trash"></i></button></td>';
-    newRow.innerHTML = rowHTML;
-    tbody.appendChild(newRow);
-    
-    initializeShiftColors();
-    setupKeyboardNavigation();
+    try {
+        // Collect data from table
+        const dataToSave = [];
+        const rows = document.querySelectorAll('#entryTable tbody tr');
+        
+        rows.forEach(row => {
+            const areaInput = row.querySelector('.area-input');
+            const nameInput = row.querySelector('.name-input');
+            const positionInput = row.querySelector('.position-input');
+            
+            if (!areaInput || !nameInput || !positionInput) return;
+            
+            const area = areaInput.value;
+            const name = nameInput.value;
+            const position = positionInput.value;
+            
+            if (!name) return; // Skip empty rows
+            
+            const shifts = {};
+            const shiftInputs = row.querySelectorAll('.shift-input');
+            
+            shiftInputs.forEach((input, index) => {
+                if (index < dateRangeMain.length) {
+                    const date = dateRangeMain[index];
+                    const dateKey = formatDateForShift(date);
+                    shifts[dateKey] = input.value.toUpperCase();
+                }
+            });
+            
+            dataToSave.push({ area, name, position, shifts });
+        });
+        
+        // Save to Firestore in batch
+        const batch = db.batch();
+        
+        // Clear existing data in absenTabel
+        const absenTabelSnapshot = await db.collection('absenTabel').get();
+        absenTabelSnapshot.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        
+        // Add new data to absenTabel
+        dataToSave.forEach(data => {
+            const docRef = db.collection('absenTabel').doc();
+            batch.set(docRef, data);
+        });
+        
+        await batch.commit();
+        console.log('Data saved to absen tabel successfully');
+        
+        showNotification('Data saved to Attendance Table successfully!', 'success');
+        
+        // Refresh absen tabel data
+        await loadAbsenTabelData();
+        
+        // Switch to absen tabel tab
+        document.querySelector('[data-tab="absen-tabel"]').click();
+        
+    } catch (error) {
+        console.error('Error saving data to absen tabel:', error);
+        showNotification('Error saving data to Attendance Table: ' + error.message, 'error');
+    }
 }
 
-// Apply header size function
-export function applyHeaderSize() {
-    const width = document.getElementById('headerWidth').value;
-    const height = document.getElementById('headerHeight').value;
+// Initialize attendance entry when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Setup event listeners
+    document.getElementById('applyFilterMain').addEventListener('click', applyDateFilterMain);
     
-    const headers = document.querySelectorAll('#entryTable th');
-    const cells = document.querySelectorAll('#entryTable td');
-    
-    headers.forEach(header => {
-        if (width) header.style.minWidth = width + 'px';
-        if (height) header.style.height = height + 'px';
+    // Header size button
+    document.getElementById('applyHeaderSize').addEventListener('click', function() {
+        const width = document.getElementById('headerWidth').value;
+        const height = document.getElementById('headerHeight').value;
+        
+        const headers = document.querySelectorAll('#entryTable th');
+        const cells = document.querySelectorAll('#entryTable td');
+        
+        headers.forEach(header => {
+            if (width) header.style.minWidth = width + 'px';
+            if (height) header.style.height = height + 'px';
+        });
+        
+        cells.forEach(cell => {
+            if (width) cell.style.minWidth = width + 'px';
+            if (height) cell.style.height = height + 'px';
+        });
+        
+        localStorage.setItem('headerWidth', width);
+        localStorage.setItem('headerHeight', height);
+        
+        showNotification('Header size applied successfully!', 'success');
     });
     
-    cells.forEach(cell => {
-        if (width) cell.style.minWidth = width + 'px';
-        if (height) cell.style.height = height + 'px';
+    // Add row button
+    document.getElementById('addRow').addEventListener('click', function() {
+        const tbody = document.querySelector('#entryTable tbody');
+        const newRow = document.createElement('tr');
+        
+        let rowHTML = `
+            <td><input type="text" class="area-input read-only-input" readonly ondblclick="makeEditable(this)"></td>
+            <td><input type="text" class="name-input read-only-input" readonly ondblclick="makeEditable(this)"></td>
+            <td><input type="text" class="position-input read-only-input" readonly ondblclick="makeEditable(this)"></td>
+        `;
+        
+        dateRangeMain.forEach(() => {
+            rowHTML += '<td><input type="text" class="shift-input editable-cell" onchange="updateShiftColor(this)"></td>';
+        });
+        
+        rowHTML += '<td><button class="btn-delete" onclick="deleteRow(this)"><i class="fas fa-trash"></i></button></td>';
+        newRow.innerHTML = rowHTML;
+        tbody.appendChild(newRow);
+        
+        initializeShiftColors();
+        setupKeyboardNavigation();
     });
     
-    localStorage.setItem('headerWidth', width);
-    localStorage.setItem('headerHeight', height);
-    
-    showNotification('Header size applied successfully!', 'success');
-}
+    // Save data button
+    document.getElementById('saveData').addEventListener('click', async function() {
+        await saveDataToFirestore();
+        await saveDataToAbsenTabel();
+    });
+});
