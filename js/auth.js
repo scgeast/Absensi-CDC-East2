@@ -1,250 +1,245 @@
-// Authentication logic
+// auth.js - Firebase Authentication Module
 
-// Global variables
-let currentUser = null;
-let isOnline = navigator.onLine;
+// Initialize Firebase with the provided configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyCs_65P_SLx529UwLcQO8cF69yD1yLOgKY",
+    authDomain: "blueiiifirebase.firebaseapp.com",
+    projectId: "blueiiifirebase",
+    storageBucket: "blueiiifirebase.firebasestorage.app",
+    messagingSenderId: "194236727932",
+    appId: "1:194236727932:web:6b10d6302d5c56ebac3ff9"
+};
 
 // Initialize Firebase
-function initializeFirebase() {
-    // Check if Firebase is already initialized
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+
+// Initialize Firebase services
+const auth = firebase.auth();
+let db; // Will be initialized after auth state is confirmed
+
+// Function to initialize Firestore with error handling
+function initializeFirestore() {
+    try {
+        db = firebase.firestore();
+        
+        // Enable offline persistence
+        return db.enablePersistence()
+            .then(() => {
+                console.log("Offline persistence enabled");
+                return db;
+            })
+            .catch((err) => {
+                console.error('Persistence failed: ', err);
+                if (err.code === 'failed-precondition') {
+                    // Multiple tabs open, persistence can only be enabled in one tab at a time
+                    console.log('Multiple tabs open, persistence disabled');
+                } else if (err.code === 'unimplemented') {
+                    // The current browser does not support persistence
+                    console.log('Browser does not support persistence');
+                }
+                return db;
+            });
+    } catch (error) {
+        console.error("Error initializing Firestore:", error);
+        throw error;
     }
-    
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-    
-    // Enable offline persistence
-    db.enablePersistence()
-      .catch((err) => {
-          console.log('Persistence failed: ', err);
-      });
-      
-    // Setup auth state listener
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            // User is signed in
-            handleUserLoggedIn(user);
-        } else {
-            // User is signed out
+}
+
+// Authentication state observer
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        // User is signed in
+        console.log('User is signed in');
+        
+        try {
+            // Initialize Firestore if not already initialized
+            if (!db) {
+                await initializeFirestore();
+            }
+            
+            // Get user data from Firestore
+            const userDoc = await db.collection('users').doc(user.uid).get();
+            
+            let userData = {
+                uid: user.uid,
+                email: user.email,
+                role: "user",
+                name: user.email.split('@')[0],
+                position: ''
+            };
+            
+            if (userDoc.exists) {
+                const data = userDoc.data();
+                userData.role = data.role || "user";
+                userData.name = data.name || userData.name;
+                userData.position = data.position || '';
+            } else {
+                // Create default user data if doesn't exist
+                await db.collection('users').doc(user.uid).set({
+                    email: userData.email,
+                    role: userData.role,
+                    name: userData.name,
+                    position: userData.position,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+            
+            // Call the handleUserLoggedIn function with user data
+            if (typeof handleUserLoggedIn === 'function') {
+                handleUserLoggedIn(userData);
+            } else {
+                console.error('handleUserLoggedIn function not found');
+            }
+            
+        } catch (error) {
+            console.error('Error handling logged in user:', error);
+            handleAuthError(error);
+        }
+    } else {
+        // User is signed out
+        console.log('User is signed out');
+        if (typeof handleUserLoggedOut === 'function') {
             handleUserLoggedOut();
         }
-    });
-}
+    }
+});
 
-// Handle user logged in
-async function handleUserLoggedIn(user) {
-    currentUser = {
-        uid: user.uid,
-        email: user.email
-    };
-    
+// Function to handle user login
+async function loginUser(email, password) {
     try {
-        // Try to get user data from Firestore
-        const userDoc = await db.collection('users').doc(currentUser.uid).get();
-        
-        if (userDoc.exists) {
-            const userData = userDoc.data();
-            currentUser.role = userData.role;
-            currentUser.name = userData.name || userData.email.split('@')[0];
-            currentUser.position = userData.position || '';
-        } else {
-            // Create default user data if doesn't exist
-            currentUser.role = "user";
-            currentUser.name = currentUser.email.split('@')[0];
-            currentUser.position = '';
-            
-            await db.collection('users').doc(currentUser.uid).set({
-                email: currentUser.email,
-                role: currentUser.role,
-                name: currentUser.name,
-                position: currentUser.position,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+        if (typeof showLoading === 'function') {
+            showLoading(true);
         }
         
-        // Update UI
-        document.getElementById('loginContainer').style.display = 'none';
-        document.getElementById('sidebar').style.display = 'block';
-        document.getElementById('userPasswordSection').style.display = 'block';
-        document.getElementById('mainContent').style.display = 'block';
-        document.querySelector('.futuristic-header').style.display = 'block';
-        
-        // Update header subtitle
-        document.querySelector('.header-subtitle').innerHTML = 
-            `Modern and Efficient Attendance Management | Logged in as: ${currentUser.name || currentUser.email} (${currentUser.role})`;
-        
-        // Setup menu and filter based on role
-        setupMenuByRole(currentUser.role);
-        setupFilterByRole(currentUser.role);
-        
-        // Load initial data
-        await loadInitialData();
-        
-    } catch (error) {
-        console.error('Error handling user login:', error);
-        // Use default values if Firestore is unavailable
-        currentUser.role = "user";
-        currentUser.name = currentUser.email.split('@')[0];
-        currentUser.position = '';
-    }
-    
-    checkConnection();
-}
-
-// Handle user logged out
-function handleUserLoggedOut() {
-    currentUser = null;
-    
-    // Reset UI to login state
-    document.getElementById('loginContainer').style.display = 'flex';
-    document.getElementById('sidebar').style.display = 'none';
-    document.getElementById('userPasswordSection').style.display = 'none';
-    document.getElementById('mainContent').style.display = 'none';
-    document.querySelector('.futuristic-header').style.display = 'none';
-    
-    // Clear form fields
-    document.getElementById('email').value = '';
-    document.getElementById('password').value = '';
-    document.getElementById('loginError').style.display = 'none';
-}
-
-// Login function
-async function login(email, password) {
-    showLoading(true);
-    
-    try {
         // Clear previous errors
-        document.getElementById('loginError').style.display = 'none';
+        const loginError = document.getElementById('loginError');
+        if (loginError) {
+            loginError.style.display = 'none';
+        }
         
         const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        // User is handled in onAuthStateChanged
+        
+        // The user state observer will handle the rest
+        return userCredential.user;
         
     } catch (error) {
         console.error('Login error:', error);
-        document.getElementById('loginError').textContent = error.message;
-        document.getElementById('loginError').style.display = 'block';
+        
+        const loginError = document.getElementById('loginError');
+        if (loginError) {
+            loginError.textContent = error.message;
+            loginError.style.display = 'block';
+        }
+        
+        if (typeof showLoading === 'function') {
+            showLoading(false);
+        }
+        
+        throw error;
+    }
+}
+
+// Function to handle user logout
+async function logoutUser() {
+    try {
+        await auth.signOut();
+        // The user state observer will handle the rest
+        return true;
+    } catch (error) {
+        console.error('Logout error:', error);
+        throw error;
+    }
+}
+
+// Function to handle authentication errors
+function handleAuthError(error) {
+    console.error('Authentication error:', error);
+    
+    if (error.code === 'failed-precondition') {
+        alert('Multiple tabs open. Please close other tabs and refresh this page.');
+    } else if (error.code === 'unavailable') {
+        if (navigator.onLine) {
+            alert('Service unavailable. Please check your connection.');
+        }
+        // If offline, no need to show alert
+    } else {
+        alert(`Error: ${error.message}`);
+    }
+    
+    if (typeof showLoading === 'function') {
         showLoading(false);
     }
 }
 
-// Logout function
-function logout() {
-    auth.signOut().then(() => {
-        // User is handled in onAuthStateChanged
-    }).catch((error) => {
-        console.error('Logout error:', error);
-    });
-}
-
-// Setup menu based on role
-function setupMenuByRole(role) {
-    // Hide all menus first
-    document.querySelectorAll('.sidebar-menu a').forEach(menu => {
-        menu.style.display = 'none';
-    });
-    
-    document.querySelectorAll('.sidebar-folder').forEach(folder => {
-        folder.style.display = 'none';
-    });
-    
-    // Show General menu for all roles
-    document.getElementById('generalFolder').style.display = 'block';
-    document.querySelectorAll('#generalFolder .sidebar-menu a').forEach(menu => {
-        menu.style.display = 'flex';
-    });
-    
-    // Show Main and Settings for admin
-    if (role === 'admin') {
-        document.getElementById('mainFolder').style.display = 'block';
-        document.querySelectorAll('#mainFolder .sidebar-menu a').forEach(menu => {
-            menu.style.display = 'flex';
-        });
-        document.querySelector('[data-tab="setting"]').style.display = 'flex';
-    }
-    
-    // Show logout for all roles
-    document.getElementById('logoutBtn').style.display = 'flex';
-}
-
-// Setup filter based on role
-function setupFilterByRole(role) {
-    const employeeFilterContainerMain = document.getElementById('employeeFilterContainerMain');
-    const employeeFilterContainerOvertimeOutput = document.getElementById('employeeFilterContainerOvertimeOutput');
-    const employeeFilterContainerAbsenTabel = document.getElementById('employeeFilterContainerAbsenTabel');
-    
-    // Hide employee filter for all roles
-    employeeFilterContainerMain.style.display = 'none';
-    employeeFilterContainerOvertimeOutput.style.display = 'none';
-    employeeFilterContainerAbsenTabel.style.display = 'none';
-}
-
-// Check connection status
+// Function to check connection status
 function checkConnection() {
     const statusElement = document.getElementById('connectionStatus');
     const loginOfflineMessage = document.getElementById('loginOfflineMessage');
     const appOfflineMessage = document.getElementById('appOfflineMessage');
     
-    if (isOnline) {
-        statusElement.textContent = 'Online';
-        statusElement.className = 'connection-status connection-online';
-        loginOfflineMessage.style.display = 'none';
-        appOfflineMessage.style.display = 'none';
+    if (navigator.onLine) {
+        if (statusElement) {
+            statusElement.textContent = 'Online';
+            statusElement.className = 'connection-status connection-online';
+        }
+        if (loginOfflineMessage) {
+            loginOfflineMessage.style.display = 'none';
+        }
+        if (appOfflineMessage) {
+            appOfflineMessage.style.display = 'none';
+        }
     } else {
-        statusElement.textContent = 'Offline';
-        statusElement.className = 'connection-status connection-offline';
-        loginOfflineMessage.style.display = 'block';
-        if (currentUser) {
+        if (statusElement) {
+            statusElement.textContent = 'Offline';
+            statusElement.className = 'connection-status connection-offline';
+        }
+        if (loginOfflineMessage) {
+            loginOfflineMessage.style.display = 'block';
+        }
+        if (appOfflineMessage && window.currentUser) {
             appOfflineMessage.style.display = 'block';
         }
     }
-    statusElement.style.display = 'block';
+    if (statusElement) {
+        statusElement.style.display = 'block';
+    }
 }
 
-// Event listeners for connection
+// Event listeners for connection status
 window.addEventListener('online', () => {
-    isOnline = true;
     checkConnection();
     console.log('Connection restored');
     // Sync data when connection is restored
-    if (currentUser) {
+    if (window.currentUser && typeof saveDataToFirestore === 'function') {
         saveDataToFirestore();
     }
 });
 
 window.addEventListener('offline', () => {
-    isOnline = false;
     checkConnection();
     console.log('Connection lost');
 });
 
-// Initialize auth when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    initializeFirebase();
-    
-    // Setup login button
-    document.getElementById('loginBtn').addEventListener('click', function() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        
-        if (!email || !password) {
-            alert('Email and password must be filled!');
-            return;
-        }
-        
-        login(email, password);
-    });
-    
-    // Enter key for login
-    document.getElementById('password').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            document.getElementById('loginBtn').click();
-        }
-    });
-    
-    // Logout button
-    document.getElementById('logoutBtn').addEventListener('click', logout);
-    
-    // Check initial connection
+// Function to get the current Firestore instance
+function getDb() {
+    if (!db) {
+        throw new Error('Firestore database not initialized. Please ensure user is authenticated.');
+    }
+    return db;
+}
+
+// Initialize connection status check when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
     checkConnection();
 });
+
+// Export functions for use in other scripts
+window.authService = {
+    loginUser,
+    logoutUser,
+    getDb,
+    auth,
+    checkConnection
+};
