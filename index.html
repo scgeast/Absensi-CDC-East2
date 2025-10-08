@@ -5,84 +5,120 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Attendance Crew CDC East</title>
     
-    <!-- CSS -->
+    <!-- CSS Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- Configuration Files -->
+    <script src="config/firebase-config.js"></script>
+    <script src="constants.js"></script>
+    
+    <!-- CSS -->
     <link rel="stylesheet" href="css/style.css">
     
-    <!-- JavaScript Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Utility Functions -->
+    <script src="js/utils.js"></script>
+    
+    <!-- Authentication Module -->
+    <script src="js/auth.js"></script>
+    
+    <!-- Feature Modules -->
+    <script src="js/attendance-entry.js"></script>
+    <script src="js/leave-management.js"></script>
+    <script src="js/overtime-calculation.js"></script>
+    <script src="js/overtime-form.js"></script>
+    <script src="js/user-management.js"></script>
+    
+    <!-- Main Application -->
+    <script src="js/app.js"></script>
 </head>
 <body>
+    <!-- Skip to main content link for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
     <!-- Mobile Menu Toggle -->
-    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle mobile menu">
         <i class="fas fa-bars"></i>
     </button>
     
     <!-- Sidebar Backdrop for Mobile -->
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
-
+    
     <!-- Connection Status -->
-    <div class="connection-status" id="connectionStatus"></div>
-
+    <div class="connection-status" id="connectionStatus" role="status" aria-live="polite"></div>
+    
     <!-- Loading Spinner -->
-    <div class="spinner-container" id="loadingSpinner" style="display: none;">
-        <div class="spinner"></div>
+    <div class="spinner-container" id="loadingSpinner" style="display: none;" role="alert" aria-busy="true">
+        <div class="spinner" aria-hidden="true"></div>
+        <span class="sr-only">Loading...</span>
     </div>
-
+    
     <!-- Login Screen -->
-    <div class="login-container" id="loginContainer">
-        <div class="login-form">
-            <h2 class="login-title">ATTENDANCE CREW CDC EAST</h2>
-            <div class="offline-message" id="loginOfflineMessage" style="display: none;">
-                <i class="fas fa-wifi"></i> You are currently offline. Some features may be limited.
+    <div class="login-container" id="loginContainer" role="main">
+        <div class="login-form" role="form" aria-labelledby="loginTitle">
+            <h2 class="login-title" id="loginTitle">ATTENDANCE CREW CDC EAST</h2>
+            <div class="offline-message" id="loginOfflineMessage" role="alert">
+                <i class="fas fa-wifi" aria-hidden="true"></i> 
+                <span>You are currently offline. Some features may be limited.</span>
             </div>
             <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="email" placeholder="Enter email">
+                <input type="email" class="form-control" id="email" placeholder="Enter email" required>
             </div>
             <div class="mb-3">
                 <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="password" placeholder="Enter password">
+                <input type="password" class="form-control" id="password" placeholder="Enter password" required>
             </div>
-            <div class="login-error" id="loginError" style="display: none;">Email or password is incorrect!</div>
-            <button class="btn btn-futuristic w-100" id="loginBtn">Login</button>
+            <div class="login-error" id="loginError" role="alert" aria-live="assertive">
+                Email or password is incorrect!
+            </div>
+            <button class="btn btn-futuristic w-100" id="loginBtn" type="submit">
+                <i class="fas fa-sign-in-alt me-1" aria-hidden="true"></i> Login
+            </button>
             <div class="provider-text">Provide by L23-51Xe</div>
         </div>
     </div>
-
+    
     <!-- Sidebar -->
-    <div class="sidebar" id="sidebar" style="display: none;">
+    <nav class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
         <div class="sidebar-header">
             <h3>Attendance Menu</h3>
-            <button class="sidebar-toggle" id="sidebarToggle">
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" aria-expanded="false">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
         
         <!-- General Folder (User & Admin) -->
         <div class="sidebar-folder" id="generalFolder">
-            <div class="sidebar-folder-header">
-                <i class="fas fa-folder"></i>
+            <div class="sidebar-folder-header" role="button" tabindex="0" aria-expanded="false">
+                <i class="fas fa-folder" aria-hidden="true"></i>
                 <span>General</span>
             </div>
             <div class="sidebar-folder-content">
                 <ul class="sidebar-menu">
                     <li>
-                        <a href="#" data-tab="absen-tabel">
-                            <i class="fas fa-table"></i>
+                        <a href="#" data-tab="absen-tabel" role="menuitem" tabindex="-1">
+                            <i class="fas fa-table" aria-hidden="true"></i>
                             <span>Attendance Table</span>
                         </a>
                     </li>
                     <li>
-                        <a href="#" data-tab="form-rekap-lembur">
-                            <i class="fas fa-calculator"></i>
+                        <a href="#" data-tab="form-rekap-lembur" role="menuitem" tabindex="-1">
+                            <i class="fas fa-calculator" aria-hidden="true"></i>
                             <span>Overtime Form</span>
                         </a>
                     </li>
                     <li>
-                        <a href="#" data-tab="cuti-detail">
-                            <i class="fas fa-calendar-alt"></i>
+                        <a href="#" data-tab="cuti-detail" role="menuitem" tabindex="-1">
+                            <i class="fas fa-calendar-alt" aria-hidden="true"></i>
                             <span>Summarize Leave</span>
                         </a>
                     </li>
@@ -91,40 +127,40 @@
         </div>
         
         <!-- Main Folder (Admin Only) -->
-        <div class="sidebar-folder" id="mainFolder" style="display: none;">
-            <div class="sidebar-folder-header">
-                <i class="fas fa-folder"></i>
+        <div class="sidebar-folder" id="mainFolder">
+            <div class="sidebar-folder-header" role="button" tabindex="0" aria-expanded="false">
+                <i class="fas fa-folder" aria-hidden="true"></i>
                 <span>Main</span>
             </div>
             <div class="sidebar-folder-content">
                 <ul class="sidebar-menu">
                     <li>
-                        <a href="#" data-tab="entry">
-                            <i class="fas fa-pen-to-square"></i>
+                        <a href="#" data-tab="entry" role="menuitem" tabindex="-1">
+                            <i class="fas fa-pen-to-square" aria-hidden="true"></i>
                             <span>Attendance Entry</span>
                         </a>
                     </li>
                     <li>
-                        <a href="#" data-tab="output">
-                            <i class="fas fa-file-export"></i>
+                        <a href="#" data-tab="output" role="menuitem" tabindex="-1">
+                            <i class="fas fa-file-export" aria-hidden="true"></i>
                             <span>Attendance Output</span>
                         </a>
                     </li>
                     <li>
-                        <a href="#" data-tab="overtime">
-                            <i class="fas fa-calculator"></i>
+                        <a href="#" data-tab="overtime" role="menuitem" tabindex="-1">
+                            <i class="fas fa-calculator" aria-hidden="true"></i>
                             <span>Overtime Calculation</span>
                         </a>
                     </li>
                     <li>
-                        <a href="#" data-tab="cuti">
-                            <i class="fas fa-calendar-alt"></i>
+                        <a href="#" data-tab="cuti" role="menuitem" tabindex="-1">
+                            <i class="fas fa-calendar-alt" aria-hidden="true"></i>
                             <span>Leave Management</span>
                         </a>
                     </li>
                     <li>
-                        <a href="#" data-tab="summary-overtime">
-                            <i class="fas fa-chart-bar"></i>
+                        <a href="#" data-tab="summary-overtime" role="menuitem" tabindex="-1">
+                            <i class="fas fa-chart-bar" aria-hidden="true"></i>
                             <span>Summary Overtime</span>
                         </a>
                     </li>
@@ -135,280 +171,831 @@
         <!-- Settings Menu (Admin Only) -->
         <ul class="sidebar-menu">
             <li>
-                <a href="#" data-tab="setting" style="display: none;">
-                    <i class="fas fa-cog"></i>
+                <a href="#" data-tab="setting" role="menuitem" tabindex="-1">
+                    <i class="fas fa-cog" aria-hidden="true"></i>
                     <span>Settings</span>
                 </a>
             </li>
             <li>
-                <a href="#" id="logoutBtn" style="display: none;">
-                    <i class="fas fa-sign-out-alt"></i>
+                <a href="#" id="logoutBtn" role="menuitem" tabindex="-1">
+                    <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
                     <span>Logout</span>
                 </a>
             </li>
         </ul>
-    </div>
-
+    </nav>
+    
     <!-- User Password Section -->
-    <div class="user-password-section" id="userPasswordSection" style="display: none;">
-        <button class="user-password-btn" id="changePasswordSidebarBtn">
-            <i class="fas fa-key"></i>
+    <div class="user-password-section" id="userPasswordSection">
+        <button class="user-password-btn" id="changePasswordSidebarBtn" aria-label="Change password">
+            <i class="fas fa-key" aria-hidden="true"></i>
             <span>Change Password</span>
         </button>
     </div>
-
+    
     <!-- Header -->
-    <header class="futuristic-header" style="display: none;">
+    <header class="futuristic-header">
         <div class="container">
             <h1 class="header-title text-center">ATTENDANCE CREW CDC EAST</h1>
             <p class="header-subtitle text-center">Modern and Efficient Attendance Management</p>
         </div>
     </header>
-
+    
     <!-- Main Content -->
-    <div class="main-content" id="mainContent" style="display: none;">
-        <div class="offline-message" id="appOfflineMessage" style="display: none;">
-            <i class="fas fa-wifi"></i> You are currently offline. Data will be synced when connection is restored.
+    <main class="main-content" id="main-content">
+        <div class="offline-message" id="appOfflineMessage" role="alert">
+            <i class="fas fa-wifi" aria-hidden="true"></i> 
+            <span>You are currently offline. Data will be synced when connection is restored.</span>
         </div>
         
         <div class="container mt-4">
-            <!-- Filter Sections -->
-            <div class="filter-section" id="filterSectionMain" style="display: none;">
-                <div class="row">
-                    <div class="col-md-3">
-                        <label for="dateFilterMain" class="form-label">Date</label>
-                        <input type="date" class="form-control" id="dateFilterMain">
-                    </div>
-                    <div class="col-md-3">
-                        <label for="employeeFilterMain" class="form-label">Employee</label>
-                        <select class="form-control" id="employeeFilterMain">
-                            <option value="">All Employees</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">&nbsp;</label>
-                        <button class="btn btn-futuristic w-100" id="applyFilterMain">Apply Filter</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="filter-section" id="filterSectionOvertimeOutput" style="display: none;">
-                <div class="row">
-                    <div class="col-md-3">
-                        <label for="dateFilterOvertimeOutput" class="form-label">Date</label>
-                        <input type="date" class="form-control" id="dateFilterOvertimeOutput">
-                    </div>
-                    <div class="col-md-3">
-                        <label for="employeeFilterOvertimeOutput" class="form-label">Employee</label>
-                        <select class="form-control" id="employeeFilterOvertimeOutput">
-                            <option value="">All Employees</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">&nbsp;</label>
-                        <button class="btn btn-futuristic w-100" id="applyFilterOvertimeOutput">Apply Filter</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="filter-section" id="filterSectionAbsenTabel" style="display: none;">
-                <div class="row">
-                    <div class="col-md-3">
-                        <label for="dateFilterAbsenTabel" class="form-label">Date</label>
-                        <input type="date" class="form-control" id="dateFilterAbsenTabel">
-                    </div>
-                    <div class="col-md-3">
-                        <label for="employeeFilterAbsenTabel" class="form-label">Employee</label>
-                        <select class="form-control" id="employeeFilterAbsenTabel">
-                            <option value="">All Employees</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">&nbsp;</label>
-                        <button class="btn btn-futuristic w-100" id="applyFilterAbsenTabel">Apply Filter</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tab Content -->
-            <div class="tab-content">
-                <!-- Attendance Entry Tab -->
-                <div class="tab-pane fade" id="entry">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title">Attendance Entry</h5>
+            <!-- Filter Section for Main Folder -->
+            <div class="filter-section filter-section-main" id="filterSectionMain">
+                <h6>Main Folder Filter</h6>
+                <div class="row g-2">
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <label for="dateRangeMain" class="form-label">Date Range</label>
+                        <div class="input-group input-group-sm">
+                            <input type="date" class="form-control" id="startDateMain" aria-label="Start date">
+                            <span class="input-group-text">to</span>
+                            <input type="date" class="form-control" id="endDateMain" aria-label="End date">
                         </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered" id="attendanceTable">
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-4" id="employeeFilterContainerMain">
+                        <label for="employeeNameMain" class="form-label">Employee Name</label>
+                        <select class="form-select form-select-sm" id="employeeNameMain" aria-label="Select employee">
+                            <option value="all">Select All</option>
+                            <!-- Options will be filled by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="col-12 col-lg-4 d-flex align-items-end gap-2">
+                        <button class="btn btn-futuristic btn-sm flex-fill" id="applyFilterMain" type="button">
+                            <i class="fas fa-filter me-1" aria-hidden="true"></i> Apply
+                        </button>
+                        <button class="btn btn-futuristic btn-sm flex-fill" id="exportExcelMain" type="button">
+                            <i class="fas fa-file-excel me-1" aria-hidden="true"></i> Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Filter Section for Overtime Calculation and Attendance Output -->
+            <div class="filter-section filter-section-overtime-output" id="filterSectionOvertimeOutput" style="display: none;">
+                <h6>Overtime & Output Filter</h6>
+                <div class="row g-2">
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <label for="dateRangeOvertimeOutput" class="form-label">Date Range</label>
+                        <div class="input-group input-group-sm">
+                            <input type="date" class="form-control" id="startDateOvertimeOutput" aria-label="Start date">
+                            <span class="input-group-text">to</span>
+                            <input type="date" class="form-control" id="endDateOvertimeOutput" aria-label="End date">
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-4" id="employeeFilterContainerOvertimeOutput">
+                        <label for="employeeNameOvertimeOutput" class="form-label">Employee Name</label>
+                        <select class="form-select form-select-sm" id="employeeNameOvertimeOutput" aria-label="Select employee">
+                            <option value="all">Select All</option>
+                            <!-- Options will be filled by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="col-12 col-lg-4 d-flex align-items-end gap-2">
+                        <button class="btn btn-futuristic btn-sm flex-fill" id="applyFilterOvertimeOutput" type="button">
+                            <i class="fas fa-filter me-1" aria-hidden="true"></i> Apply
+                        </button>
+                        <button class="btn btn-futuristic btn-sm flex-fill" id="exportExcelOvertimeOutput" type="button">
+                            <i class="fas fa-file-excel me-1" aria-hidden="true"></i> Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Filter Section for Attendance Table -->
+            <div class="filter-section filter-section-absen-tabel" id="filterSectionAbsenTabel" style="display: none;">
+                <h6>Attendance Table Filter</h6>
+                <div class="row g-2">
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <label for="dateRangeAbsenTabel" class="form-label">Date Range</label>
+                        <div class="input-group input-group-sm">
+                            <input type="date" class="form-control" id="startDateAbsenTabel" aria-label="Start date">
+                            <span class="input-group-text">to</span>
+                            <input type="date" class="form-control" id="endDateAbsenTabel" aria-label="End date">
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-4" id="employeeFilterContainerAbsenTabel">
+                        <label for="employeeNameAbsenTabel" class="form-label">Employee Name</label>
+                        <select class="form-select form-select-sm" id="employeeNameAbsenTabel" aria-label="Select employee">
+                            <option value="all">Select All</option>
+                            <!-- Options will be filled by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="col-12 col-lg-4 d-flex align-items-end gap-2">
+                        <button class="btn btn-futuristic btn-sm flex-fill" id="applyFilterAbsenTabel" type="button">
+                            <i class="fas fa-filter me-1" aria-hidden="true"></i> Apply
+                        </button>
+                        <button class="btn btn-futuristic btn-sm flex-fill" id="exportExcelAbsenTabel" type="button">
+                            <i class="fas fa-file-excel me-1" aria-hidden="true"></i> Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab Content -->
+            <div class="tab-content" id="absensiTabContent">
+                <!-- Entry Tab -->
+                <div class="tab-pane fade show active" id="entry" role="tabpanel" aria-labelledby="entry-tab">
+                    <button type="button" class="collapsible" aria-expanded="true" aria-controls="entry-content">
+                        Attendance Entry Form <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </button>
+                    <div class="collapsible-content" id="entry-content" style="max-height: 500px;">
+                        <p class="small">Enter shift code (1, 2, 3, 11, 22, C, O) to fill cells and see colors according to shift type.</p>
+                        
+                        <div class="legend" role="region" aria-label="Shift color legend">
+                            <div class="legend-item shift-1" role="img" aria-label="Morning shift">
+                                <div class="legend-color" aria-hidden="true"></div>
+                                <span>Morning (1)</span>
+                            </div>
+                            <div class="legend-item shift-2" role="img" aria-label="Afternoon shift">
+                                <div class="legend-color" aria-hidden="true"></div>
+                                <span>Afternoon (2)</span>
+                            </div>
+                            <div class="legend-item shift-3" role="img" aria-label="Night shift">
+                                <div class="legend-color" aria-hidden="true"></div>
+                                <span>Night (3)</span>
+                            </div>
+                            <div class="legend-item shift-11" role="img" aria-label="Morning part-time shift">
+                                <div class="legend-color" aria-hidden="true"></div>
+                                <span>Morning Part (11)</span>
+                            </div>
+                            <div class="legend-item shift-22" role="img" aria-label="Afternoon part-time shift">
+                                <div class="legend-color" aria-hidden="true"></div>
+                                <span>Afternoon Part (22)</span>
+                            </div>
+                            <div class="legend-item shift-C" role="img" aria-label="Leave">
+                                <div class="legend-color" aria-hidden="true"></div>
+                                <span>Leave (C)</span>
+                            </div>
+                            <div class="legend-item shift-O" role="img" aria-label="Off day">
+                                <div class="legend-color" aria-hidden="true"></div>
+                                <span>Off (O)</span>
+                            </div>
+                        </div>
+                        
+                        <div class="header-controls">
+                            <div class="header-control-group">
+                                <span class="header-control-label">Header Width:</span>
+                                <input type="number" id="headerWidth" class="header-control-input" placeholder="px" min="60" max="150" value="90" aria-label="Header width in pixels">
+                            </div>
+                            <div class="header-control-group">
+                                <span class="header-control-label">Header Height:</span>
+                                <input type="number" id="headerHeight" class="header-control-input" placeholder="px" min="30" max="60" value="35" aria-label="Header height in pixels">
+                            </div>
+                            <button class="btn btn-futuristic btn-sm" id="applyHeaderSize" type="button">
+                                <i class="fas fa-check me-1" aria-hidden="true"></i> Apply
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-container" role="region" aria-label="Attendance entry table" tabindex="0">
+                        <table id="entryTable" role="grid" aria-label="Attendance entry data">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Work Area</th>
+                                    <th scope="col">Employee Name</th>
+                                    <th scope="col">Job Position</th>
+                                    <!-- Date columns will be filled by JavaScript -->
+                                    <th scope="col">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn btn-futuristic" id="addRow" type="button">
+                            <i class="fas fa-plus me-1" aria-hidden="true"></i> Add Row
+                        </button>
+                        <button class="btn btn-futuristic" id="saveData" type="button">
+                            <i class="fas fa-save me-1" aria-hidden="true"></i> Save
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Output Tab -->
+                <div class="tab-pane fade" id="output" role="tabpanel" aria-labelledby="output-tab">
+                    <button type="button" class="collapsible" aria-expanded="true" aria-controls="output-content">
+                        Attendance Output Data <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </button>
+                    <div class="collapsible-content" id="output-content" style="max-height: 500px;">
+                        <p class="small">Attendance data that has been input will appear here with appropriate shift check in/out.</p>
+                    </div>
+                    
+                    <div class="table-responsive" role="region" aria-label="Attendance output table" tabindex="0">
+                        <table id="outputTable" class="table table-striped table-sm" role="grid" aria-label="Attendance output data">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Work Area</th>
+                                    <th scope="col">Employee Name</th>
+                                    <th scope="col">Job Position</th>
+                                    <th scope="col">Date</th>
+                                    <th scope="col">Shift</th>
+                                    <th scope="col">Shift Check In</th>
+                                    <th scope="col">Shift Check Out</th>
+                                    <th scope="col">Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn btn-futuristic" id="saveOutputData" type="button">
+                            <i class="fas fa-save me-1" aria-hidden="true"></i> Save Output
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Overtime Tab -->
+                <div class="tab-pane fade" id="overtime" role="tabpanel" aria-labelledby="overtime-tab">
+                    <!-- NEW: Refresh Button Container -->
+                    <div class="refresh-button-container">
+                        <button class="btn btn-refresh" id="refreshOvertimeData" type="button">
+                            <i class="fas fa-sync-alt" aria-hidden="true"></i> Refresh Overtime Data
+                        </button>
+                    </div>
+                    
+                    <button type="button" class="collapsible" aria-expanded="true" aria-controls="overtime-content">
+                        Overtime Calculation <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </button>
+                    <div class="collapsible-content" id="overtime-content" style="max-height: 500px;">
+                        <p class="small">Here you can manage employee overtime calculation.</p>
+                    </div>
+                    
+                    <div class="table-responsive" role="region" aria-label="Overtime calculation table" tabindex="0">
+                        <table class="overtime-table table-striped table-sm" id="overtimeTable" role="grid" aria-label="Overtime calculation data">
+                            <thead>
+                                <tr>
+                                    <th class="sortable-header" data-column="no" scope="col">
+                                        No <span class="sort-icon"><i class="fas fa-sort" aria-hidden="true"></i></span>
+                                    </th>
+                                    <th class="sortable-header" data-column="area" scope="col">
+                                        Work Area <span class="sort-icon"><i class="fas fa-sort" aria-hidden="true"></i></span>
+                                    </th>
+                                    <th class="sortable-header" data-column="name" scope="col">
+                                        Employee Name <span class="sort-icon"><i class="fas fa-sort" aria-hidden="true"></i></span>
+                                    </th>
+                                    <th class="sortable-header" data-column="position" scope="col">
+                                        Job Position <span class="sort-icon"><i class="fas fa-sort" aria-hidden="true"></i></span>
+                                    </th>
+                                    <th class="sortable-header" data-column="date" scope="col">
+                                        Date <span class="sort-icon"><i class="fas fa-sort" aria-hidden="true"></i></span>
+                                    </th>
+                                    <th class="sortable-header" data-column="shift" scope="col">
+                                        Shift <span class="sort-icon"><i class="fas fa-sort" aria-hidden="true"></i></span>
+                                    </th>
+                                    <th class="sortable-header" data-column="shiftCheckIn" scope="col">
+                                        Shift Check In <span class="sort-icon"><i class="fas fa-sort" aria-hidden="true"></i></span>
+                                    </th>
+                                    <th class="sortable-header" data-column="shiftCheckOut" scope="col">
+                                        Shift Check Out <span class="sort-icon"><i class="fas fa-sort" aria-hidden="true"></i></span>
+                                    </th>
+                                    <th class="sortable-header" data-column="wtNormal" scope="col">
+                                        WT/Normal <span class="sort-icon"><i class="fas fa-sort" aria-hidden="true"></i></span>
+                                    </th>
+                                    <th class="sortable-header" data-column="actualCheckIn" scope="col">
+                                        Actual Check In <span class="sort-icon"><i class="fas fa-sort" aria-hidden="true"></i></span>
+                                    </th>
+                                    <th class="sortable-header" data-column="actualCheckOut" scope="col">
+                                        Actual Check Out <span class="sort-icon"><i class="fas fa-sort" aria-hidden="true"></i></span>
+                                    </th>
+                                    <th class="sortable-header" data-column="overTime" scope="col">
+                                        Over Time <span class="sort-icon"><i class="fas fa-sort" aria-hidden="true"></i></span>
+                                    </th>
+                                    <th class="sortable-header" data-column="cekRMC" scope="col">
+                                        Cek RMC <span class="sort-icon"><i class="fas fa-sort" aria-hidden="true"></i></span>
+                                    </th>
+                                    <th class="sortable-header" data-column="rkpPIC" scope="col">
+                                        RKP PIC <span class="sort-icon"><i class="fas fa-sort" aria-hidden="true"></i></span>
+                                    </th>
+                                    <th class="sortable-header" data-column="rmcShiftCheckOut" scope="col">
+                                        Rmc - Shift Check Out <span class="sort-icon"><i class="fas fa-sort" aria-hidden="true"></i></span>
+                                    </th>
+                                    <th class="sortable-header" data-column="remarks" scope="col">
+                                        Remarks <span class="sort-icon"><i class="fas fa-sort" aria-hidden="true"></i></span>
+                                    </th>
+                                    <th scope="col">Action</th> <!-- NEW: Kolom Action untuk edit/delete -->
+                                </tr>
+                            </thead>
+                            <tbody id="overtimeTableBody">
+                                <!-- Data will be filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn btn-futuristic" id="saveOvertimeData" type="button">
+                            <i class="fas fa-save me-1" aria-hidden="true"></i> Save Overtime
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Absen Tabel Tab - MODIFIED: Added Attendance Summary -->
+                <div class="tab-pane fade" id="absen-tabel" role="tabpanel" aria-labelledby="absen-tabel-tab">
+                    <button type="button" class="collapsible" aria-expanded="true" aria-controls="absen-tabel-content">
+                        Attendance Table Data <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </button>
+                    <div class="collapsible-content" id="absen-tabel-content" style="max-height: 500px;">
+                        <p class="small">Saved attendance data. Data can be edited but cannot be deleted.</p>
+                    </div>
+                    
+                    <div class="table-container" role="region" aria-label="Attendance table" tabindex="0">
+                        <table id="absenTabelTable" role="grid" aria-label="Attendance table data">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Work Area</th>
+                                    <th scope="col">Employee Name</th>
+                                    <th scope="col">Job Position</th>
+                                    <!-- Date columns will be filled by JavaScript -->
+                                    <th scope="col">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- NEW: Attendance Summary Section -->
+                    <div class="summary-section">
+                        <div class="summary-title">Attendance Summary</div>
+                        <div class="table-responsive" role="region" aria-label="Attendance summary table" tabindex="0">
+                            <table class="summary-table table-striped table-sm" id="attendanceSummaryTable" role="grid" aria-label="Attendance summary data">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">No</th>
+                                        <th scope="col">Employee Name</th>
+                                        <th scope="col">Off</th>
+                                        <th scope="col">Morning</th>
+                                        <th scope="col">Afternoon</th>
+                                        <th scope="col">Night</th>
+                                        <th scope="col">Morning Part</th>
+                                        <th scope="col">Afternoon Part</th>
+                                        <th scope="col">Leave</th>
+                                        <th scope="col">Total Attendance</th>
+                                        <th scope="col">Total Work Day</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attendanceSummaryTableBody">
+                                    <!-- Data will be filled by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Cuti Tab - PERBAIKAN: Tambah tombol delete -->
+                <div class="tab-pane fade" id="cuti" role="tabpanel" aria-labelledby="cuti-tab">
+                    <button type="button" class="collapsible" aria-expanded="true" aria-controls="cuti-content">
+                        Leave Management <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </button>
+                    <div class="collapsible-content" id="cuti-content" style="max-height: 500px;">
+                        <p class="small">Here you can manage employee leave data.</p>
+                    </div>
+                    
+                    <div class="cuti-form">
+                        <h5>Add Employee Leave</h5>
+                        <div class="row g-2">
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="cutiEmployee" class="form-label">Employee Name</label>
+                                <select class="form-select form-select-sm" id="cutiEmployee" aria-label="Select employee">
+                                    <!-- Options will be filled by JavaScript -->
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-3">
+                                <label for="cutiStartDate" class="form-label">Start Date</label>
+                                <input type="date" class="form-control form-control-sm" id="cutiStartDate" aria-label="Start date">
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-3">
+                                <label for="cutiEndDate" class="form-label">End Date</label>
+                                <input type="date" class="form-control form-control-sm" id="cutiEndDate" aria-label="End date">
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-2 d-flex align-items-end">
+                                <button class="btn btn-futuristic btn-sm w-100" id="addCuti" type="button">
+                                    <i class="fas fa-plus me-1" aria-hidden="true"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                        <!-- PERBAIKAN: Tampilkan sisa cuti -->
+                        <div class="mt-2" id="remainingLeaveInfo">
+                            <small class="text-muted">Remaining leave: <span id="remainingLeaveValue">12</span> days</small>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive" role="region" aria-label="Leave management table" tabindex="0">
+                        <table class="table table-striped table-sm" id="cutiTable" role="grid" aria-label="Leave data">
+                            <thead>
+                                <tr>
+                                    <th scope="col">No</th>
+                                    <th scope="col">Employee Name</th>
+                                    <th scope="col">Start Date</th>
+                                    <th scope="col">End Date</th>
+                                    <th scope="col">Duration (Days)</th>
+                                    <th scope="col">Remarks</th>
+                                    <th scope="col">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cutiTableBody">
+                                <!-- Data will be filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn btn-futuristic" id="saveCuti" type="button">
+                            <i class="fas fa-save me-1" aria-hidden="true"></i> Save Leave Data
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Cuti Detail Tab - PERBAIKAN: Summarize Leave -->
+                <div class="tab-pane fade" id="cuti-detail" role="tabpanel" aria-labelledby="cuti-detail-tab">
+                    <button type="button" class="collapsible" aria-expanded="true" aria-controls="cuti-detail-content">
+                        Summarize Leave <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </button>
+                    <div class="collapsible-content" id="cuti-detail-content" style="max-height: 500px;">
+                        <p class="small">Summary of employee leave data. All users can see this summary, but regular users can only view their own details.</p>
+                    </div>
+                    
+                    <div class="table-responsive" role="region" aria-label="Leave summary table" tabindex="0">
+                        <table class="cuti-detail-table table-striped table-sm" id="cutiDetailTable" role="grid" aria-label="Leave summary data">
+                            <thead>
+                                <tr>
+                                    <th scope="col">No</th>
+                                    <th scope="col">Employee Name</th>
+                                    <th scope="col">Work Area</th>
+                                    <th scope="col">Job Position</th>
+                                    <th scope="col">Remaining</th>
+                                    <th scope="col">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cutiDetailTableBody">
+                                <!-- Data will be filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Form Rekap Lembur Tab - MODIFIED -->
+                <div class="tab-pane fade" id="form-rekap-lembur" role="tabpanel" aria-labelledby="form-rekap-lembur-tab">
+                    <button type="button" class="collapsible" aria-expanded="true" aria-controls="form-rekap-lembur-content">
+                        Overtime Form <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </button>
+                    <div class="collapsible-content" id="form-rekap-lembur-content" style="max-height: 500px;">
+                        <p class="small">Fill in the overtime form to record your overtime activities. You can only view your own overtime data.</p>
+                    </div>
+                    
+                    <!-- PERBAIKAN: Form untuk user biasa -->
+                    <div class="overtime-form-container" id="userOvertimeForm">
+                        <h5>Overtime Form</h5>
+                        <div class="overtime-form-row">
+                            <div class="overtime-form-group">
+                                <label for="rekapDate" class="form-label">Date</label>
+                                <input type="date" class="form-control form-control-sm" id="rekapDate" aria-label="Date">
+                            </div>
+                            <div class="overtime-form-group">
+                                <label for="rekapStartTime" class="form-label">Start Time</label>
+                                <input type="time" class="form-control form-control-sm" id="rekapStartTime" aria-label="Start time">
+                            </div>
+                            <div class="overtime-form-group">
+                                <label for="rekapEndTime" class="form-label">End Time</label>
+                                <input type="time" class="form-control form-control-sm" id="rekapEndTime" aria-label="End time">
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive" role="region" aria-label="Overtime form table" tabindex="0">
+                            <table class="overtime-table table-striped table-sm" id="rekapLemburTable" role="grid" aria-label="Overtime form data">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">No</th>
+                                        <th scope="col">Total Project</th>
+                                        <th scope="col">Total Plant</th>
+                                        <th scope="col">Plant Name</th>
+                                        <th scope="col">Volume (m3)</th>
+                                        <th scope="col">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rekapLemburTableBody">
+                                    <!-- Data akan diisi oleh JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="form-group mt-3">
+                            <label for="uraianTugas" class="form-label">Task Description</label>
+                            <textarea class="form-control form-control-sm" id="uraianTugas" rows="3" placeholder="Describe your overtime tasks..." aria-label="Task description"></textarea>
+                        </div>
+                        
+                        <div class="action-buttons mt-3">
+                            <button class="btn btn-futuristic" id="saveRekapLembur" type="button">
+                                <i class="fas fa-save me-1" aria-hidden="true"></i> Save
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- PERBAIKAN: Overtime Detail untuk admin dan user -->
+                    <div class="overtime-form-container" id="adminOvertimeDetail">
+                        <div class="overtime-controls">
+                            <div class="overtime-filter" id="overtimeFilterSection">
+                                <label for="overtimeEmployeeFilter" class="form-label me-2">Employee Name:</label>
+                                <select class="form-select form-select-sm" id="overtimeEmployeeFilter" aria-label="Select employee">
+                                    <option value="all">All Employees</option>
+                                    <!-- Options will be filled by JavaScript -->
+                                </select>
+                            </div>
+                            <div class="total-overtime-container">
+                                <span class="me-2">Total Overtime:</span>
+                                <span class="total-overtime-value" id="totalOvertimeValue">00:00</span>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive mt-3">
+                            <h5>Overtime Detail</h5>
+                            <table class="overtime-table table-striped table-sm" id="overtimeDetailTable" role="grid" aria-label="Overtime detail data">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">No</th>
+                                        <th scope="col">Employee Name</th>
+                                        <th scope="col">Date</th>
+                                        <th scope="col">Start Time</th>
+                                        <th scope="col">End Time</th>
+                                        <th scope="col">Duration</th> <!-- Kolom baru Duration -->
+                                        <th scope="col">Total Project</th>
+                                        <th scope="col">Total Plant</th>
+                                        <th scope="col">Plant Name</th>
+                                        <th scope="col">Volume (m3)</th>
+                                        <th scope="col">Task Description</th>
+                                        <!-- PERBAIKAN: Hilangkan kolom Action untuk admin di overtime detail -->
+                                    </tr>
+                                </thead>
+                                <tbody id="overtimeDetailTableBody">
+                                    <!-- Data akan diisi setelah menyimpan -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- NEW: Summary Overtime Tab in Main Folder -->
+                <div class="tab-pane fade" id="summary-overtime" role="tabpanel" aria-labelledby="summary-overtime-tab">
+                    <button type="button" class="collapsible" aria-expanded="true" aria-controls="summary-overtime-content">
+                        Overtime Summary <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </button>
+                    <div class="collapsible-content" id="summary-overtime-content" style="max-height: 500px;">
+                        <p class="small">Summary of overtime data for all employees. This summary is affected by date filter in Overtime Calculation.</p>
+                    </div>
+                    
+                    <div class="table-responsive" role="region" aria-label="Overtime summary table" tabindex="0">
+                        <table class="summary-table table-striped table-sm" id="overtimeSummaryTable" role="grid" aria-label="Overtime summary data">
+                            <thead>
+                                <tr>
+                                    <th scope="col">No</th>
+                                    <th scope="col">Employee Name</th>
+                                    <th scope="col">Total Work Day</th>
+                                    <th scope="col">Total Work Time</th>
+                                    <th scope="col">Total RKP PIC</th>
+                                    <th scope="col">Total Rmc-Shift Check Out</th>
+                                </tr>
+                            </thead>
+                            <tbody id="overtimeSummaryTableBody">
+                                <!-- Data will be filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Setting Tab -->
+                <div class="tab-pane fade" id="setting" role="tabpanel" aria-labelledby="setting-tab">
+                    <button type="button" class="collapsible" aria-expanded="true" aria-controls="setting-content">
+                        System Settings <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                    </button>
+                    <div class="collapsible-content" id="setting-content" style="max-height: 500px;">
+                        <p class="small">Here you can manage users and system settings.</p>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <h5>User Management</h5>
+                            <div class="mb-3">
+                                <button class="btn btn-futuristic" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                                    <i class="fas fa-user-plus me-1" aria-hidden="true"></i> Add User
+                                </button>
+                            </div>
+                            <div class="table-responsive" role="region" aria-label="User management table" tabindex="0">
+                                <table class="user-table table-striped table-sm" role="grid" aria-label="User data">
                                     <thead>
                                         <tr>
-                                            <th>No</th>
-                                            <th>Name</th>
-                                            <th>Date</th>
-                                            <th>Shift</th>
-                                            <th>Action</th>
+                                            <th scope="col">No</th>
+                                            <th scope="col">Email</th>
+                                            <th scope="col">Employee Name</th>
+                                            <th scope="col">Job Position</th>
+                                            <th scope="col">Role</th>
+                                            <th scope="col">Password</th>
+                                            <th scope="col">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="attendanceTableBody">
-                                        <!-- Data will be populated by JavaScript -->
+                                    <tbody id="userTableBody">
+                                        <!-- Data will be filled by JavaScript -->
                                     </tbody>
                                 </table>
                             </div>
-                            <button class="btn btn-futuristic mt-3" onclick="addRow()">
-                                <i class="fas fa-plus"></i> Add Row
+                        </div>
+                    </div>
+                    
+                    <!-- PERBAIKAN: Hilangkan bagian Change Password di setting admin -->
+                    <hr class="setting-password-section">
+                    <div class="row setting-password-section">
+                        <div class="col-12">
+                            <h5>Change Password</h5>
+                            <div class="row g-2">
+                                <div class="col-12 col-md-4">
+                                    <div class="mb-3">
+                                        <label for="currentPassword" class="form-label">Current Password</label>
+                                        <input type="password" class="form-control form-control-sm" id="currentPassword" aria-label="Current password">
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <div class="mb-3">
+                                        <label for="newPassword" class="form-label">New Password</label>
+                                        <input type="password" class="form-control form-control-sm" id="newPassword" aria-label="New password">
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <div class="mb-3">
+                                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                                        <input type="password" class="form-control form-control-sm" id="confirmPassword" aria-label="Confirm new password">
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-futuristic" id="changePasswordBtn" type="button">
+                                <i class="fas fa-key me-1" aria-hidden="true"></i> Change Password
                             </button>
                         </div>
                     </div>
                 </div>
-
-                <!-- Add other tab content here (output, overtime, cuti, etc.) -->
-                <div class="tab-pane fade" id="output">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title">Attendance Output</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered" id="outputTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Employee</th>
-                                            <th>Date</th>
-                                            <th>Attendance Data</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- Data will be populated by JavaScript -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Add remaining tabs with basic structure -->
-                <div class="tab-pane fade" id="overtime">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title">Overtime Calculation</h5>
-                        </div>
-                        <div class="card-body">
-                            <!-- Overtime content -->
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="cuti">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title">Leave Management</h5>
-                        </div>
-                        <div class="card-body">
-                            <!-- Leave management content -->
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="summary-overtime">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title">Summary Overtime</h5>
-                        </div>
-                        <div class="card-body">
-                            <!-- Summary overtime content -->
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="absen-tabel">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title">Attendance Table</h5>
-                        </div>
-                        <div class="card-body">
-                            <!-- Attendance table content -->
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="form-rekap-lembur">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title">Overtime Form</h5>
-                        </div>
-                        <div class="card-body">
-                            <!-- Overtime form content -->
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="cuti-detail">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title">Summarize Leave</h5>
-                        </div>
-                        <div class="card-body">
-                            <!-- Summarize leave content -->
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="setting">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="card-title">Settings</h5>
-                        </div>
-                        <div class="card-body">
-                            <!-- Settings content -->
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
-    </div>
-
-    <!-- Change Password Modal -->
-    <div class="modal fade" id="changePasswordModal" tabindex="-1">
-        <div class="modal-dialog">
+    </main>
+    
+    <!-- Modal untuk Tambah Pengguna -->
+    <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Change Password</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title" id="addUserModalLabel">Add New User</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="currentPassword" class="form-label">Current Password</label>
-                        <input type="password" class="form-control" id="currentPassword">
+                        <label for="newUserEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control form-control-sm" id="newUserEmail" aria-label="Email" required>
                     </div>
                     <div class="mb-3">
-                        <label for="newPassword" class="form-label">New Password</label>
-                        <input type="password" class="form-control" id="newPassword">
+                        <label for="newUserPassword" class="form-label">Password</label>
+                        <input type="password" class="form-control form-control-sm" id="newUserPassword" aria-label="Password" required>
                     </div>
                     <div class="mb-3">
-                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
-                        <input type="password" class="form-control" id="confirmPassword">
+                        <label for="newUserName" class="form-label">Employee Name</label>
+                        <input type="text" class="form-control form-control-sm" id="newUserName" aria-label="Employee name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newUserPosition" class="form-label">Job Position</label>
+                        <input type="text" class="form-control form-control-sm" id="newUserPosition" aria-label="Job position" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newUserRole" class="form-label">Role</label>
+                        <select class="form-select form-select-sm" id="newUserRole" aria-label="User role">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-futuristic" onclick="changeUserPassword()">Change Password</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-futuristic btn-sm" id="saveUserBtn">Save</button>
                 </div>
             </div>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- JavaScript Modules -->
-    <script type="module" src="js/firebase-config.js"></script>
-    <script type="module" src="js/utils.js"></script>
-    <script type="module" src="js/auth.js"></script>
-    <script type="module" src="js/attendance-entry.js"></script>
-    <script type="module" src="js/overtime-calculation.js"></script>
-    <script type="module" src="js/overtime-form.js"></script>
-    <script type="module" src="js/leave-management.js"></script>
-    <script type="module" src="js/user-management.js"></script>
-    <script type="module" src="js/app.js"></script>
+    <!-- Modal untuk Edit Pengguna -->
+    <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editUserId">
+                    <div class="mb-3">
+                        <label for="editUserEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control form-control-sm" id="editUserEmail" readonly aria-label="Email">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editUserName" class="form-label">Employee Name</label>
+                        <input type="text" class="form-control form-control-sm" id="editUserName" aria-label="Employee name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editUserPosition" class="form-label">Job Position</label>
+                        <input type="text" class="form-control form-control-sm" id="editUserPosition" aria-label="Job position" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editUserRole" class="form-label">Role</label>
+                        <select class="form-select form-select-sm" id="editUserRole" aria-label="User role">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editUserPassword" class="form-label">New Password (leave empty to keep current)</label>
+                        <input type="password" class="form-control form-control-sm" id="editUserPassword" aria-label="New password">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-futuristic btn-sm" id="updateUserBtn">Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal untuk Ganti Password (User) -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="userCurrentPassword" class="form-label">Current Password</label>
+                        <input type="password" class="form-control form-control-sm" id="userCurrentPassword" aria-label="Current password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="userNewPassword" class="form-label">New Password</label>
+                        <input type="password" class="form-control form-control-sm" id="userNewPassword" aria-label="New password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="userConfirmPassword" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control form-control-sm" id="userConfirmPassword" aria-label="Confirm new password" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-futuristic btn-sm" id="userChangePasswordBtn">Change Password</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal untuk View Leave Details - PERBAIKAN: Tambah tombol delete -->
+    <div class="modal fade leave-detail-modal" id="viewLeaveDetailModal" tabindex="-1" aria-labelledby="viewLeaveDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewLeaveDetailModalLabel">Leave Details - <span id="modalEmployeeName"></span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive" role="region" aria-label="Leave details table" tabindex="0">
+                        <table class="table table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Start Date</th>
+                                    <th scope="col">End Date</th>
+                                    <th scope="col">Duration (Days)</th>
+                                    <th scope="col">Remarks</th>
+                                    <th scope="col">Action</th> <!-- PERBAIKAN: Kolom Action baru -->
+                                </tr>
+                            </thead>
+                            <tbody id="leaveDetailTableBody">
+                                <!-- Data akan diisi oleh JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
